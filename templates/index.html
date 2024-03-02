@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Generator</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(to bottom, #F28585 0%, #FFA447 25%, #FFFC9B 50%, #B7E5B4 100%);
+            color: #fff;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        input[type="text"], input[type="submit"], .print-btn {
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        input[type="text"] {
+            width: 70%;
+        }
+        input[type="submit"], .print-btn {
+            width: 30%;
+            color: #fff;
+            background-color: #007bff;
+        }
+        input[type="submit"]:hover, .print-btn:hover {
+            background-color: #0056b3;
+        }
+        .gallery img, .modal-content {
+            border-radius: 5px;
+            margin: 10px;
+        }
+        .gallery img {
+            width: 100px;
+            height: auto;
+            cursor: pointer;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        .modal-content {
+            margin: auto;
+            display: block;
+            width: 80%;
+            max-width: 700px;
+        }
+        #caption {
+            margin: auto;
+            display: block;
+            width: 80%;
+            max-width: 700px;
+            text-align: center;
+            color: #ccc;
+            padding: 10px 0;
+            height: 150px;
+        }
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .modal-content, .modal-content * {
+                visibility: visible;
+            }
+            .modal {
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+            .print-btn, .close, #caption {
+                display: none;
+            }
+            .element-to-hide {
+                display: none;
+            }
+        @page {
+            size:landscape;
+        }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to the coloring page generator!</h1>
+        <form action="/" method="post">
+            <input type="text" id="prompt" name="prompt" placeholder="Enter your prompt here...">
+            <input type="submit" value="Generate">
+        </form>
+        <div class="gallery">
+            {% for filename in image_filenames %}
+                <img src="{{ url_for('serve_image', filename=filename) }}" alt="Generated image" class="image-thumbnail">
+            {% endfor %}
+        </div>
+    </div>
+    </div>
+    <div id="imageModal" class="modal">
+        <span class="close">&times;</span>
+        <button onclick="window.print()" class="print-btn">Print Image</button>
+        <img class="modal-content" id="img01">
+        <div id="caption"></div>
+    </div>
+
+    <script>
+        var modal = document.getElementById("imageModal");
+        document.querySelectorAll('.image-thumbnail').forEach(function(img) {
+            img.addEventListener('click', function() {
+                modal.style.display = "block";
+                document.getElementById("img01").src = this.src;
+                document.getElementById("caption").innerHTML = this.alt;
+            });
+        });
+        document.querySelector('.close').addEventListener('click', function() {
+            modal.style.display = "none";
+        });
+        window.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        });
+        document.addEventListener('keydown', function(event) {
+            if (modal.style.display === "block" && (event.key === "Escape" || event.keyCode === 27)) {
+                modal.style.display = "none";
+            }
+        });
+    </script>
+</body>
+</html>
