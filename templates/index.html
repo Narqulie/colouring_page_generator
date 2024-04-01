@@ -109,11 +109,44 @@
             size:landscape;
         }
         }
+        #loadingOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, .85); /* Semi-transparent black */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 2; /* Ensure it's above other content */
+        }
+        .loader {
+        border: 6px solid #f3f3f3; /* Light grey */
+        border-top: 6px solid #3498db; /* Initially blue */
+        border-radius: 50%; /* Circular loader */
+        width: 50px;
+        height: 50px;
+        animation: spin 2s linear infinite, fadeColors 3s ease-in-out infinite;
+        }
+
+        @keyframes fadeColors {
+            0%, 100% { border-top-color: #F28585; } /* Starting and ending with pink */
+            25% { border-top-color: #FFA447; } /* Orange */
+            50% { border-top-color: #FFFC9B; } /* Yellow */
+            75% { border-top-color: #B7E5B4; } /* Green */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
     </style>
 </head>
+
 <body>
     <div class="container">
-        <h1>Welcome to the coloring page generator!</h1>
+        <h1>Welcome to the colouring page generator!</h1>
         <form action="/" method="post">
             <input type="text" id="prompt" name="prompt" placeholder="Enter your prompt here...">
             <input type="submit" value="Generate">
@@ -123,8 +156,11 @@
                 <img src="{{ url_for('serve_image', filename=filename) }}" alt="Generated image" class="image-thumbnail">
             {% endfor %}
         </div>
+        <div id="loadingOverlay" style="display: none;">
+            <div id="loadingSpinner" class="loader"></div>
+        </div>
     </div>
-    </div>
+
     <div id="imageModal" class="modal">
         <span class="close">&times;</span>
         <button onclick="window.print()" class="print-btn">Print Image</button>
@@ -154,6 +190,16 @@
                 modal.style.display = "none";
             }
         });
+        
+        document.querySelector('form').addEventListener('submit', function() {
+        document.getElementById('loadingOverlay').style.display = 'flex'; // Show the overlay with the spinner
+        // Force reflow/repaint
+        var forceReflow = document.getElementById('loadingOverlay').offsetHeight;
+        });
+        // Function to hide the spinner (and overlay) once loading is complete
+        function hideSpinner() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
     </script>
 </body>
 </html>
