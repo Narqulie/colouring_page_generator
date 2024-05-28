@@ -1,205 +1,94 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Generator</title>
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            font-family: 'Arial', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(to bottom, #F28585 0%, #FFA447 25%, #FFFC9B 50%, #B7E5B4 100%);
-            color: #fff;
-        }
-        .container {
-            text-align: center;
-            padding: 20px;
-            border-radius: 10px;
-            background: rgba(0, 0, 0, 0.5);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        input[type="text"], input[type="submit"], .print-btn {
-            padding: 10px;
-            margin: 10px 0;
-            border: none;
-            border-radius: 5px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        input[type="text"] {
-            width: 70%;
-        }
-        input[type="submit"], .print-btn {
-            width: 30%;
-            color: #fff;
-            background-color: #007bff;
-        }
-        input[type="submit"]:hover, .print-btn:hover {
-            background-color: #0056b3;
-        }
-        .gallery img, .modal-content {
-            border-radius: 5px;
-            margin: 10px;
-        }
-        .gallery img {
-            width: 100px;
-            height: auto;
-            cursor: pointer;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.7);
-        }
-        .modal-content {
-            margin: auto;
-            display: block;
-            width: 80%;
-            max-width: 700px;
-        }
-        #caption {
-            margin: auto;
-            display: block;
-            width: 80%;
-            max-width: 700px;
-            text-align: center;
-            color: #ccc;
-            padding: 10px 0;
-            height: 150px;
-        }
-        .close {
-            position: absolute;
-            top: 15px;
-            right: 35px;
-            color: #f1f1f1;
-            font-size: 40px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            .modal-content, .modal-content * {
-                visibility: visible;
-            }
-            .modal {
-                position: absolute;
-                left: 0;
-                top: 0;
-            }
-            .print-btn, .close, #caption {
-                display: none;
-            }
-            .element-to-hide {
-                display: none;
-            }
-        @page {
-            size:landscape;
-        }
-        }
-        #loadingOverlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: rgba(0, 0, 0, .85); /* Semi-transparent black */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 2; /* Ensure it's above other content */
-        }
-        .loader {
-        border: 6px solid #f3f3f3; /* Light grey */
-        border-top: 6px solid #3498db; /* Initially blue */
-        border-radius: 50%; /* Circular loader */
-        width: 50px;
-        height: 50px;
-        animation: spin 2s linear infinite, fadeColors 3s ease-in-out infinite;
-        }
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        var flashMessage = $('<div class="flash-message alert alert-{{ category }}">{{ message }}</div>');
+                        $('#flash-messages-container').append(flashMessage);
+                        flashMessage.fadeIn(500).delay(3000).fadeOut(500, function() {
+                            $(this).remove();
+                        });
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
 
-        @keyframes fadeColors {
-            0%, 100% { border-top-color: #F28585; } /* Starting and ending with pink */
-            25% { border-top-color: #FFA447; } /* Orange */
-            50% { border-top-color: #FFFC9B; } /* Yellow */
-            75% { border-top-color: #B7E5B4; } /* Green */
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+            // Show the spinner on form submission
+            $('#generateForm').on('submit', function() {
+                $('#loadingOverlay').show();
+            });
 
-    </style>
+            // Hide the spinner after the page is fully loaded
+            $(window).on('load', function() {
+                $('#loadingOverlay').hide();
+            });
+        });
+    </script>
 </head>
 
 <body>
     <div class="container">
-        <h1>Welcome to the colouring page generator!</h1>
-        <form action="/" method="post">
+        <h1>Welcome to the Colouring Page Generator!</h1>
+        <hr>
+        <div id="flash-messages-container"></div> <!-- Container for flash messages -->
+
+        <form id="generateForm" action="/generate" method="post">
             <input type="text" id="prompt" name="prompt" placeholder="Enter your prompt here...">
-            <input type="submit" value="Generate">
+            <button type="submit">
+                <span class="transition"></span>
+                <span class="gradient"></span>
+                <span class="label">Generate</span>
+            </button>
         </form>
-        <div class="gallery">
+        <hr>
+        <div class="row">
             {% for filename in image_filenames %}
-                <img src="{{ url_for('serve_image', filename=filename) }}" alt="Generated image" class="image-thumbnail">
+            <div class="col-lg-3 col-md-4 col-6 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <img src="{{ url_for('serve_image', filename=filename) }}"
+                            class="card-img-top img-fluid image-thumbnail" alt="Generated image">
+                            <p class="card-text">{{ filename[:25] }}...</p>
+                    </div>
+                </div>
+            </div>
             {% endfor %}
         </div>
+
         <div id="loadingOverlay" style="display: none;">
             <div id="loadingSpinner" class="loader"></div>
         </div>
     </div>
 
     <div id="imageModal" class="modal">
-        <span class="close">&times;</span>
-        <button onclick="window.print()" class="print-btn">Print Image</button>
+        <div class="button-container">
+            <span class="close">&times;</span>
+            <button class="print-btn">Print</button>
+        </div>
         <img class="modal-content" id="img01">
         <div id="caption"></div>
     </div>
 
-    <script>
-        var modal = document.getElementById("imageModal");
-        document.querySelectorAll('.image-thumbnail').forEach(function(img) {
-            img.addEventListener('click', function() {
-                modal.style.display = "block";
-                document.getElementById("img01").src = this.src;
-                document.getElementById("caption").innerHTML = this.alt;
-            });
-        });
-        document.querySelector('.close').addEventListener('click', function() {
-            modal.style.display = "none";
-        });
-        window.addEventListener('click', function(event) {
-            if (event.target === modal) {
-                modal.style.display = "none";
-            }
-        });
-        document.addEventListener('keydown', function(event) {
-            if (modal.style.display === "block" && (event.key === "Escape" || event.keyCode === 27)) {
-                modal.style.display = "none";
-            }
-        });
-        
-        document.querySelector('form').addEventListener('submit', function() {
-        document.getElementById('loadingOverlay').style.display = 'flex'; // Show the overlay with the spinner
-        // Force reflow/repaint
-        var forceReflow = document.getElementById('loadingOverlay').offsetHeight;
-        });
-        // Function to hide the spinner (and overlay) once loading is complete
-        function hideSpinner() {
-            document.getElementById('loadingOverlay').style.display = 'none';
-        }
-    </script>
+    <!-- Error Modal -->
+    <div id="errorModal" class="modal">
+        <span class="close">&times;</span>
+        <div class="modal-content">
+            <p id="errorMessage">Please enter a prompt.</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
+
 </html>

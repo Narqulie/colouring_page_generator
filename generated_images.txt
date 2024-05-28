@@ -1,2 +1,0 @@
-2024-03-24 19:02:53.103026,images/image_20240324_190421.png,Draw a blob like creature, collecting maple syrup in a glade of trees
-2024-03-24 19:11:31.361090,images/image_20240324_191211.png,A parade of animals, in a miniature scale on a city street view from high up
