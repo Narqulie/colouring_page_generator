@@ -27,6 +27,8 @@ client = OpenAI()
 def create_colouring_page(prompt):
     print("create_colouring_page")
     original_prompt = prompt
+    if prompt == "Surprise me!":
+        prompt = "An engaging coloring page for children. The theme could be anything that children would enjoy coloring in. The image should be detailed and intricate, with a lot of different elements to color in."
     try:
         response = client.images.generate(
             model="dall-e-3",

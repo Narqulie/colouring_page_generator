@@ -21,12 +21,16 @@
                     {% endfor %}
                 {% endif %}
             {% endwith %}
-
+    
             // Show the spinner on form submission
             $('#generateForm').on('submit', function() {
                 $('#loadingOverlay').show();
             });
-
+    
+            $('#surpriseForm').on('submit', function() {
+                $('#loadingOverlay').show();
+            });
+    
             // Hide the spinner after the page is fully loaded
             $(window).on('load', function() {
                 $('#loadingOverlay').hide();
@@ -49,6 +53,15 @@
                 <span class="label">Generate</span>
             </button>
         </form>
+
+        <form id="surpriseForm" action="/surprise" method="post">
+            <button type="submit">
+                <span class="transition"></span>
+                <span class="gradient"></span>
+                <span class="label">Surprise me!</span>
+            </button>
+        </form>
+
         <hr>
         <div class="row">
             {% for filename in image_filenames %}
@@ -77,6 +90,16 @@
         <img class="modal-content" id="img01">
         <div id="caption"></div>
     </div>
+
+    <div id="imageModal" class="modal">
+        <div class="button-container">
+            <span class="close">&times;</span>
+            <button class="print-btn">Print</button>
+        </div>
+        <img class="modal-content" id="img01">
+        <div id="caption"></div>
+    </div>
+    
 
     <!-- Error Modal -->
     <div id="errorModal" class="modal">

@@ -3,3 +3,6 @@
 /images
 *.env
 *.log
+*.pyc
+.DS_Store
+*.cpython

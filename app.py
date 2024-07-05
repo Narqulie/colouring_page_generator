@@ -25,6 +25,14 @@ def generate():
     return redirect(url_for('index'))
 
 
+@app.route('/surprise', methods=['POST'])
+def surprise():
+    prompt = "Surprise me!"
+    print(f"prompt: {prompt}")
+    create_colouring_page(prompt)
+    return redirect(url_for('index'))
+
+
 @app.route('/images/<filename>')
 def serve_image(filename):
     print("serve_image")
