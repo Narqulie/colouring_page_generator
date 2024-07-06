@@ -1,11 +1,8 @@
-import logging
 from datetime import datetime
-
+from loguru import logger
 now = datetime.now()
 
-logging.basicConfig(level=logging.INFO)
 
 def log_generated_images(file, prompt):
     imagestr = f"{now},{file},{prompt}\n"
-    with open('generated_images.log', 'a') as f:
-        f.write(imagestr)
+    logger.info(f"Logging generated image: {imagestr}")
