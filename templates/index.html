@@ -26,7 +26,6 @@
             $('#generateForm').on('submit', function() {
                 $('#loadingOverlay').show();
             });
-    
             $('#surpriseForm').on('submit', function() {
                 $('#loadingOverlay').show();
             });
@@ -53,6 +52,8 @@
                 <span class="label">Generate</span>
             </button>
         </form>
+                    
+        <div style="height: 10px;"></div>
 
         <form id="surpriseForm" action="/surprise" method="post">
             <button type="submit">

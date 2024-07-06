@@ -13,5 +13,5 @@ def get_image_filenames(app):
         return []
     logger.info("Returning a list of image filenames")
     number_of_files = len([f for f in os.listdir(image_dir) if os.path.isfile(os.path.join(image_dir, f))])
-    logger.info(f"Number of files: {noumber_of_files}")
+    logger.info(f"Number of files: {number_of_files}")
     return [f for f in os.listdir(image_dir) if os.path.isfile(os.path.join(image_dir, f))]

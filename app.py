@@ -54,6 +54,19 @@ def serve_image(filename):
     return send_from_directory(images_folder, filename)
 
 
+@app.route('/logs')
+def show_logs():
+    logger.info("Running show_logs route")
+    try:
+        with open('logs/debug.log', 'r') as file:
+            log_content = file.read()
+    except Exception as e:
+        logger.error(f"Failed to read log file: {e}")
+        log_content = "Failed to read log file."
+
+    return render_template('log.html', log_content=log_content)
+
+
 if __name__ == '__main__':
     logger.info("Running app")
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', port=42069)
