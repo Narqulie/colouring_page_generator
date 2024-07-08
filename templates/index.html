@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
     <title>Image Generator</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
@@ -84,27 +85,17 @@
     </div>
 
     <div id="imageModal" class="modal">
-        <div class="button-container">
-            <span class="close">&times;</span>
-            <button class="print-btn">Print</button>
-        </div>
         <img class="modal-content" id="img01">
         <div id="caption"></div>
-    </div>
-
-    <div id="imageModal" class="modal">
         <div class="button-container">
-            <span class="close">&times;</span>
-            <button class="print-btn">Print</button>
+            <span class="close">❌</span>
+            <button class="print-btn">🖨️</button>
         </div>
-        <img class="modal-content" id="img01">
-        <div id="caption"></div>
     </div>
-    
 
     <!-- Error Modal -->
     <div id="errorModal" class="modal">
-        <span class="close">&times;</span>
+        <span class="close">❌</span>
         <div class="modal-content">
             <p id="errorMessage">Please enter a prompt.</p>
         </div>

@@ -1,10 +1,10 @@
-document.addEventListener('DOMContentLoaded', (event) => {
+document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('imageModal');
     const modalImg = document.getElementById('img01');
     const captionText = document.getElementById('caption');
     const images = document.querySelectorAll('.image-thumbnail');
     const printBtn = document.querySelector('.print-btn');
-    const closeModal = document.getElementsByClassName('close')[0];
+    const closeModal = document.querySelectorAll('.close');
 
     images.forEach(image => {
         image.addEventListener('click', () => {
@@ -14,53 +14,11 @@ document.addEventListener('DOMContentLoaded', (event) => {
         });
     });
 
-    closeModal.onclick = function() { 
-        modal.style.display = 'none';
-    }
-
-    printBtn.addEventListener('click', () => {
-        // Hide elements that should not be printed
-        document.querySelector('.button-container').style.display = 'none';
-        captionText.style.display = 'none';
-
-
-        // Restore hidden elements after printing
-        document.querySelector('.button-container').style.display = 'block';
-        captionText.style.display = 'block';
+    closeModal.forEach(close => {
+        close.onclick = () => { 
+            modal.style.display = 'none';
+        };
     });
-});
-
-document.querySelector('button[type="submit"]').addEventListener('mouseenter', function(event) {
-    const button = event.currentTarget;
-    const rect = button.getBoundingClientRect();
-    const transition = button.querySelector('.transition');
-
-    const mouseX = event.clientX - rect.left;
-    const mouseY = event.clientY - rect.top;
-
-    transition.style.left = `${mouseX}px`;
-    transition.style.top = `${mouseY}px`;
-});
-
-document.addEventListener('DOMContentLoaded', (event) => {
-    const modal = document.getElementById('imageModal');
-    const modalImg = document.getElementById('img01');
-    const captionText = document.getElementById('caption');
-    const images = document.querySelectorAll('.image-thumbnail');
-    const printBtn = document.querySelector('.print-btn');
-    const closeModal = document.getElementsByClassName('close')[0];
-
-    images.forEach(image => {
-        image.addEventListener('click', () => {
-            modal.style.display = 'block';
-            modalImg.src = image.src;
-            captionText.innerHTML = image.alt;
-        });
-    });
-
-    closeModal.onclick = function() { 
-        modal.style.display = 'none';
-    }
 
     printBtn.addEventListener('click', () => {
         const newWindow = window.open('', '_blank');
@@ -79,5 +37,18 @@ document.addEventListener('DOMContentLoaded', (event) => {
             </html>
         `);
         newWindow.document.close();
+    });
+});
+
+document.querySelectorAll('button[type="submit"]').forEach(button => {
+    button.addEventListener('mouseenter', function(event) {
+        const rect = button.getBoundingClientRect();
+        const transition = button.querySelector('.transition');
+
+        const mouseX = event.clientX - rect.left;
+        const mouseY = event.clientY - rect.top;
+
+        transition.style.left = `${mouseX}px`;
+        transition.style.top = `${mouseY}px`;
     });
 });
