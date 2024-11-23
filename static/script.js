@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const images = document.querySelectorAll('.image-thumbnail');
     const printBtn = document.querySelector('.print-btn');
     const closeModal = document.querySelectorAll('.close');
+    const deleteButtons = document.querySelectorAll('.delete-btn');
 
     images.forEach(image => {
         image.addEventListener('click', () => {
@@ -38,6 +39,30 @@ document.addEventListener('DOMContentLoaded', () => {
         `);
         newWindow.document.close();
     });
+
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            event.preventDefault();
+            const imageCard = button.closest('.image-card');
+            const filename = imageCard.dataset.filename;
+            
+            if (confirm('Are you sure you want to delete this image?')) {
+                fetch(`/delete/${filename}`, { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            imageCard.remove();
+                        } else {
+                            alert('Failed to delete the image. Please try again.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while deleting the image.');
+                    });
+            }
+        });
+    });
 });
 
 document.querySelectorAll('button[type="submit"]').forEach(button => {
@@ -51,4 +76,34 @@ document.querySelectorAll('button[type="submit"]').forEach(button => {
         transition.style.left = `${mouseX}px`;
         transition.style.top = `${mouseY}px`;
     });
+});
+
+function showErrorPopup(message) {
+    const errorModal = document.getElementById('errorModal');
+    const errorMessage = document.getElementById('errorMessage');
+    errorMessage.textContent = message;
+    errorModal.style.display = 'block';
+
+    // Close when clicking the close button
+    const closeBtn = errorModal.querySelector('.close');
+    closeBtn.onclick = () => {
+        errorModal.style.display = 'none';
+    };
+
+    // Close when clicking outside the modal
+    window.onclick = (event) => {
+        if (event.target === errorModal) {
+            errorModal.style.display = 'none';
+        }
+    };
+}
+
+// Add form validation
+document.getElementById('generateForm').addEventListener('submit', (event) => {
+    const prompt = document.getElementById('prompt').value.trim();
+    if (!prompt) {
+        event.preventDefault();
+        showErrorPopup('Please enter a prompt before generating an image.');
+        return false;
+    }
 });
