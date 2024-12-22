@@ -140,14 +140,23 @@ async def surprise():
     Generate a surprise colouring page.
     """
     logger.info("Running surprise route (Surprise me! button clicked)")
-    prompt = "Surprise me!"
-    logger.info(f"Prompt in frontend: {prompt}")
-
-    logger.info("Calling create_colouring_page function")
-    create_colouring_page(prompt)
-
-    logger.info("Generated image successfully")
-    return RedirectResponse(url="/", status_code=303)
+    
+    try:
+        logger.info("Calling create_colouring_page function with surprise prompt")
+        result = create_colouring_page("Surprise me!")
+        if result:
+            return RedirectResponse(url="/", status_code=303)
+        else:
+            return JSONResponse(
+                status_code=500,
+                content={"error": "Failed to generate surprise image"}
+            )
+    except Exception as e:
+        logger.error(f"Error generating surprise image: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": str(e)}
+        )
 
 
 @app.get("/images/{filename}")
