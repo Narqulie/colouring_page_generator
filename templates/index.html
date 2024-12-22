@@ -37,9 +37,11 @@
     <style>
         .image-gallery {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 1rem;
             padding: 1rem;
+            margin: 0 auto;
+            max-width: 1200px;
         }
         .image-card {
             position: relative;
@@ -89,9 +91,15 @@
         <hr>
         <div id="flash-messages-container"></div>
 
-        <form id="generateForm" action="/generate" method="post">
-            <input type="text" id="prompt" name="prompt" placeholder="Enter your prompt here...">
-            <button type="submit">
+        <form id="generateForm" action="/generate" method="post" aria-label="Generate image form">
+            <input type="text" 
+                   id="prompt" 
+                   name="prompt" 
+                   placeholder="Enter your prompt here..." 
+                   aria-label="Image prompt input"
+                   minlength="3"
+                   required>
+            <button type="submit" aria-label="Generate image">
                 <span class="transition"></span>
                 <span class="gradient"></span>
                 <span class="label">Generate</span>
@@ -151,6 +159,17 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="/static/script.js"></script>
     <script src="/static/spinner.js"></script>
+    <footer class="footer">
+        <div class="footer-content">
+            <p>© 2024 Colouring Page Generator</p>
+            <p>Build: <span id="buildInfo">v1.0.0</span></p>
+            <p>Powered by OpenAI DALL-E 3</p>
+            <div class="footer-links">
+                <a href="https://github.com/narqulie/colouring_page_generator" target="_blank">GitHub</a>
+                <a href="/logs">Logs</a>
+            </div>
+        </div>
+    </footer>
 </body>
 
 </html>

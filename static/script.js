@@ -107,3 +107,32 @@ document.getElementById('generateForm').addEventListener('submit', (event) => {
         return false;
     }
 });
+
+flashMessage.fadeIn(500).delay(5000).fadeOut(500, function() {
+    $(this).remove();
+});
+
+const generateForm = document.getElementById('generateForm');
+const promptInput = document.getElementById('prompt');
+
+promptInput.addEventListener('input', (event) => {
+    const value = event.target.value.trim();
+    const submitBtn = generateForm.querySelector('button[type="submit"]');
+    
+    if (value.length < 3) {
+        promptInput.style.borderColor = '#ff4444';
+        submitBtn.disabled = true;
+    } else {
+        promptInput.style.borderColor = '#ffaa5f';
+        submitBtn.disabled = false;
+    }
+});
+
+generateForm.addEventListener('submit', (event) => {
+    const prompt = promptInput.value.trim();
+    if (!prompt || prompt.length < 3) {
+        event.preventDefault();
+        showErrorPopup('Please enter a prompt with at least 3 characters.');
+        return false;
+    }
+});
