@@ -60,7 +60,7 @@ def generate_replicate_image(prompt: str) -> Optional[str]:
                 - Creating a balance of large and small coloring areas
                 """,
                 "go_fast": True,
-                "guidance": 3.5,
+                "guidance": 10,
                 "megapixels": "1",
                 "num_outputs": 1,
                 "aspect_ratio": "1:1",
