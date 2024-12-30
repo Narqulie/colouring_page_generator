@@ -16,15 +16,59 @@ function showLoadingOverlay() {
 
 function hideLoadingOverlay() {
     const overlay = document.getElementById('loadingOverlay');
-    clearInterval(overlay.dataset.intervalId);
+    if (overlay.dataset.intervalId) {
+        clearInterval(parseInt(overlay.dataset.intervalId));
+    }
     overlay.style.display = 'none';
 }
 
-// Add event listeners for form submissions
+// Add event listeners for form submissions and page load
 document.addEventListener('DOMContentLoaded', () => {
     const generateForm = document.getElementById('generateForm');
     const surpriseForm = document.getElementById('surpriseForm');
+    const overlay = document.getElementById('loadingOverlay');
 
-    generateForm?.addEventListener('submit', showLoadingOverlay);
-    surpriseForm?.addEventListener('submit', showLoadingOverlay);
+    // Hide overlay on initial page load
+    hideLoadingOverlay();
+
+    // Add form submission listeners
+    if (generateForm) {
+        generateForm.addEventListener('submit', showLoadingOverlay);
+    }
+    if (surpriseForm) {
+        surpriseForm.addEventListener('submit', showLoadingOverlay);
+    }
+
+    // Add flash message handling
+    function showFlashMessage(message, category) {
+        const container = document.getElementById('flash-messages-container');
+        const flashDiv = document.createElement('div');
+        flashDiv.className = `flash-message alert alert-${category}`;
+        flashDiv.textContent = message;
+        
+        // Add fade-in effect
+        flashDiv.style.opacity = '0';
+        container.appendChild(flashDiv);
+        
+        // Trigger reflow
+        flashDiv.offsetHeight;
+        
+        // Add transition
+        flashDiv.style.transition = 'opacity 0.5s ease-in-out';
+        flashDiv.style.opacity = '1';
+        
+        // Remove after delay
+        setTimeout(() => {
+            flashDiv.style.opacity = '0';
+            setTimeout(() => {
+                flashDiv.remove();
+            }, 500);
+        }, 3000);
+    }
+
+    // Expose flash message function globally
+    window.showFlashMessage = showFlashMessage;
 });
+
+// Add window load handler
+window.addEventListener('load', hideLoadingOverlay);

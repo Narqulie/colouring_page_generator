@@ -2,48 +2,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('imageModal');
     const modalImg = document.getElementById('img01');
     const captionText = document.getElementById('caption');
-    const images = document.querySelectorAll('.image-thumbnail');
     const printBtn = document.querySelector('.print-btn');
-    const closeModal = document.querySelectorAll('.close');
+    const closeModal = document.querySelector('.close');
     const deleteButtons = document.querySelectorAll('.delete-btn');
-
-    images.forEach(image => {
-        image.addEventListener('click', () => {
+    
+    // Image click handler
+    document.querySelector('.image-gallery').addEventListener('click', (e) => {
+        const imageCard = e.target.closest('.image-card');
+        
+        if (imageCard && !e.target.classList.contains('delete-btn')) {
+            const image = imageCard.querySelector('img');
+            const caption = imageCard.querySelector('.image-info p').textContent;
+            
             modal.style.display = 'block';
             modalImg.src = image.src;
-            captionText.innerHTML = image.alt;
-        });
+            captionText.innerHTML = caption;
+        }
     });
 
-    closeModal.forEach(close => {
-        close.onclick = () => { 
-            modal.style.display = 'none';
-        };
-    });
-
-    printBtn.addEventListener('click', () => {
-        const newWindow = window.open('', '_blank');
-        newWindow.document.write(`
-            <html>
-            <head>
-                <title>Print</title>
-                <style>
-                    body { margin: 0; padding: 0; text-align: center; }
-                    img { max-width: 100%; height: auto; }
-                </style>
-            </head>
-            <body onload="window.print(); window.close();">
-                <img src="${modalImg.src}" />
-            </body>
-            </html>
-        `);
-        newWindow.document.close();
-    });
-
-    deleteButtons.forEach(button => {
-        button.addEventListener('click', (event) => {
-            event.preventDefault();
-            const imageCard = button.closest('.image-card');
+    // Delete button handler
+    document.querySelector('.image-gallery').addEventListener('click', (e) => {
+        if (e.target.classList.contains('delete-btn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const imageCard = e.target.closest('.image-card');
             const filename = imageCard.dataset.filename;
             
             if (confirm('Are you sure you want to delete this image?')) {
@@ -61,7 +44,39 @@ document.addEventListener('DOMContentLoaded', () => {
                         alert('An error occurred while deleting the image.');
                     });
             }
-        });
+        }
+    });
+
+    // Close button handler
+    closeModal?.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+
+    // Click outside modal to close
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+
+    // Print button handler
+    printBtn?.addEventListener('click', () => {
+        const newWindow = window.open('', '_blank');
+        newWindow.document.write(`
+            <html>
+            <head>
+                <title>Print</title>
+                <style>
+                    body { margin: 0; padding: 0; text-align: center; }
+                    img { max-width: 100%; height: auto; }
+                </style>
+            </head>
+            <body onload="window.print(); window.close();">
+                <img src="${modalImg.src}" />
+            </body>
+            </html>
+        `);
+        newWindow.document.close();
     });
 });
 
@@ -128,11 +143,33 @@ promptInput.addEventListener('input', (event) => {
     }
 });
 
-generateForm.addEventListener('submit', (event) => {
+generateForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
     const prompt = promptInput.value.trim();
+    
     if (!prompt || prompt.length < 3) {
-        event.preventDefault();
         showErrorPopup('Please enter a prompt with at least 3 characters.');
-        return false;
+        return;
+    }
+
+    showLoadingOverlay();
+
+    try {
+        const formData = new FormData(generateForm);
+        const response = await fetch('/generate', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
+            window.location.href = '/';  // Redirect to home page
+        } else {
+            const data = await response.json();
+            showErrorPopup(data.error || 'Failed to generate image');
+        }
+    } catch (error) {
+        showErrorPopup('An error occurred while generating the image');
+    } finally {
+        hideLoadingOverlay();
     }
 });

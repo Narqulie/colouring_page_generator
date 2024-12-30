@@ -17,27 +17,29 @@ logger.info(f"Python executable: {sys.executable}")
 logger.info(f"Python path: {sys.path}")
 logger.info("Running generate_image.py")
 
+
 def setup_replicate() -> Optional[bool]:
     """Initialize Replicate with API token from environment
-    
+
     Returns:
         bool: True if setup successful, None if failed
     """
     load_dotenv()
-    api_token = os.getenv('REPLICATE_API_TOKEN')
+    api_token = os.getenv("REPLICATE_API_TOKEN")
     if not api_token:
-        logger.error('The REPLICATE_API_TOKEN environment variable is not set')
+        logger.error("The REPLICATE_API_TOKEN environment variable is not set")
         return None
-    
-    os.environ['REPLICATE_API_TOKEN'] = api_token
+
+    os.environ["REPLICATE_API_TOKEN"] = api_token
     return True
+
 
 def generate_replicate_image(prompt: str) -> Optional[str]:
     """Generate image using Replicate's Flux model
-    
+
     Args:
         prompt: Text prompt for image generation
-        
+
     Returns:
         str: Image URL or None if generation failed
     """
@@ -46,19 +48,21 @@ def generate_replicate_image(prompt: str) -> Optional[str]:
             "black-forest-labs/flux-dev",
             input={
                 "prompt": f"""
-                Generate a coloring page for children.
-                The coloring page should be based on the prompt: {prompt}
-                Do not add to the prompt, use only it as a basis for the image.
-                The image should always be black and white only for colouring.
-                The image should be friendly and safe, never scary or violent.
-                The image should be detailed, with a lot of different elements to color in.
-                
-                Enhance the design by:
-                - Adding intricate patterns, textures, and small decorative elements
-                - Including complementary background elements
-                - Featuring playful and imaginative accessories
-                - Creating a balance of large and small coloring areas
-                """,
+                                Generate a black-and-white coloring page for children.  
+                                The coloring page should be based on the following description: {prompt}.  
+
+                                Guidelines for the design:  
+                                1. The image must faithfully represent the description, staying true to the theme while allowing for creative, thematic enhancements.  
+                                2. Focus on detailed linework with intricate patterns, textures, and decorative elements on the main subject to make it visually captivating.  
+                                3. Include a rich and engaging background relevant to the theme, such as imaginative scenery, complex geometric patterns, or complementary objects.  
+                                4. Add dynamic and interesting motifs (e.g., swirling shapes, abstract designs, or small thematic accessories) to enhance variety and depth.  
+                                5. Create a mix of bold, large sections for easy coloring and fine, detailed areas for more advanced coloring challenges.  
+
+                                Tone and style:  
+                                - The image should have a sophisticated, artistic style while remaining approachable and suitable for children.  
+                                - Avoid overly simplistic or overly juvenile designs; instead, aim for a design that feels timeless, artistic, and visually engaging.  
+                                - The overall page should offer a sense of wonder and creativity, appealing to both younger and older children.  
+                            """,
                 "go_fast": True,
                 "guidance": 10,
                 "megapixels": "1",
@@ -67,44 +71,48 @@ def generate_replicate_image(prompt: str) -> Optional[str]:
                 "output_format": "webp",
                 "output_quality": 80,
                 "prompt_strength": 0.8,
-                "num_inference_steps": 28
-            }
+                "num_inference_steps": 32,
+            },
         )
-        
+
         if output and isinstance(output, list):
             return output[0]  # Return first image URL
         return None
-        
+
     except Exception as e:
         logger.error(f"Failed to generate Replicate image: {e}")
         return None
 
+
 def download_and_process_image(image_url: str):
     """Download and open image from URL
-    
+
     Args:
         image_url: URL of image to download
-        
+
     Returns:
         PIL Image object or None if download failed
     """
     try:
         response = requests.get(image_url)
         if response.status_code != 200:
-            logger.error(f"Failed to download image. Status code: {response.status_code}")
+            logger.error(
+                f"Failed to download image. Status code: {response.status_code}"
+            )
             return None
-            
+
         return Image.open(BytesIO(response.content))
     except Exception as e:
         logger.error(f"Error downloading/processing image: {e}")
         return None
 
+
 def create_colouring_page(prompt: str) -> Optional[str]:
     """Generate a coloring page based on the given prompt using Replicate's Flux model.
-    
+
     Args:
         prompt (str): The prompt to generate the coloring page from.
-    
+
     Returns:
         Optional[str]: The filename of the saved image, or None if an error occurred.
     """
@@ -125,27 +133,29 @@ def create_colouring_page(prompt: str) -> Optional[str]:
         if not image_url:
             return None
         logger.debug(f"Image URL received: {image_url}")
-        
+
         # Download and process image
         img = download_and_process_image(image_url)
         if not img:
             return None
 
         # Create images directory and save image
-        os.makedirs('images', exist_ok=True)
-        
-        safe_prompt = ''.join(c for c in original_prompt if c.isalnum() or c in (' ', '_', '-'))[:50]
+        os.makedirs("images", exist_ok=True)
+
+        safe_prompt = "".join(
+            c for c in original_prompt if c.isalnum() or c in (" ", "_", "-")
+        )[:50]
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = os.path.join('images', f"{timestamp}_{safe_prompt}.png")
-        
+        filename = os.path.join("images", f"{timestamp}_{safe_prompt}.png")
+
         logger.debug(f"Attempting to save image to: {filename}")
-        
+
         try:
             img.save(filename)
             logger.info(f"Image successfully saved to {filename}")
             log_generated_images(filename, prompt)
             return filename
-            
+
         except Exception as save_error:
             logger.error(f"Failed to save image: {save_error}", exc_info=True)
             return None

@@ -11,6 +11,7 @@ from typing import Optional
 from pathlib import Path
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import Response
+from src.version import VERSION
 
 logger.add("logs/debug.log", level="DEBUG", rotation="10 MB", compression="zip")
 
@@ -97,7 +98,12 @@ async def index(request: Request):
     images.sort(key=lambda x: x["date"], reverse=True)
 
     return templates.TemplateResponse(
-        "index.html", {"request": request, "images": images}
+        "index.html", 
+        {
+            "request": request, 
+            "images": images,
+            "version": VERSION
+        }
     )
 
 
@@ -110,7 +116,6 @@ async def generate(request: Request, prompt: str = Form(...)):
     logger.info(f"Prompt in frontend: {prompt}")
     
     if not prompt or prompt.strip() == "":
-        logger.error("Prompt cannot be empty!")
         return JSONResponse(
             status_code=400,
             content={"error": "Prompt cannot be empty!"}
@@ -120,7 +125,7 @@ async def generate(request: Request, prompt: str = Form(...)):
         logger.info("Calling create_colouring_page function")
         result = create_colouring_page(prompt)
         if result:
-            return JSONResponse(content={"success": True, "message": "Image generated successfully!"})
+            return RedirectResponse(url="/", status_code=303)
         else:
             return JSONResponse(
                 status_code=500,
