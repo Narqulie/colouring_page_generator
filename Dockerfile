@@ -1,3 +1,6 @@
+# Accept API token as build argument
+ARG REPLICATE_API_TOKEN
+
 # Build stage
 FROM python:3.11-slim AS builder
 
@@ -40,6 +43,9 @@ COPY --chown=appuser:appuser . .
 # Create necessary directories with correct permissions
 RUN mkdir -p logs images static templates && \
     chown -R appuser:appuser /app
+
+# Set API token environment variable
+ENV REPLICATE_API_TOKEN=${REPLICATE_API_TOKEN}
 
 # Switch to non-root user
 USER appuser

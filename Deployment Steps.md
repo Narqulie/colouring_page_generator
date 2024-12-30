@@ -5,6 +5,6 @@ docker buildx build --platform linux/amd64,linux/arm64 -t ghcr.io/narqulie/colou
 
 ## Deployment and Execution
 ### Pulling the Image
-docker pull ghcr.io/narqulie/colouring_page_generator:latest
+docker pull ghcr.io/narqulie/colouring_page_generator:main
 ### Running the Container
-docker run -p 8000:8000 ghcr.io/narqulie/colouring_page_generator:latest
+docker run -p 8000:8000 ghcr.io/narqulie/colouring_page_generator:main
