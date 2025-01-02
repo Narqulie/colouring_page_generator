@@ -41,7 +41,7 @@ RUN pip install --no-cache /wheels/*
 COPY --chown=appuser:appuser . .
 
 # Create necessary directories with correct permissions
-RUN mkdir -p logs images static templates && \
+RUN mkdir -p logs images && \
     chown -R appuser:appuser /app
 
 # Set API token environment variable

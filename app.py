@@ -1,220 +1,163 @@
-from fastapi import FastAPI, Request, Response, HTTPException, Form
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, FileResponse
-from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
+from fastapi import FastAPI, HTTPException, Form
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from src.gallery import get_image_filenames
 from src.generate_image import create_colouring_page
 import os
 from loguru import logger
 from datetime import datetime
-from typing import Optional
+import json
 from pathlib import Path
-from starlette.middleware.sessions import SessionMiddleware
-from starlette.responses import Response
 from src.version import VERSION
 
+# Configure logger
 logger.add("logs/debug.log", level="DEBUG", rotation="10 MB", compression="zip")
 
 # Define the images folder path
 images_folder = "images"
-
-# Create images folder if it doesn't exist
 os.makedirs(images_folder, exist_ok=True)
 
-app = FastAPI()
-app.add_middleware(SessionMiddleware, secret_key="your-secret-key-here")
+# Define metadata file path
+METADATA_FILE = Path(images_folder) / "metadata.json"
 
-# Create static folder if it doesn't exist
-static_dir = Path("static")
-if not static_dir.exists():
-    logger.info("Creating static directory")
-    static_dir.mkdir(parents=True, exist_ok=True)
+app = FastAPI(title="Colouring Page Generator API")
 
-# Mount static files
-try:
-    app.mount("/static", StaticFiles(directory="static"), name="static")
-    logger.info("Successfully mounted static files")
-except Exception as e:
-    logger.error(f"Failed to mount static files: {e}")
-    raise
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, replace with specific origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-
-def flash(request: Request, message: str, category: str = "info"):
-    """Add a flash message to the session."""
-    if "_messages" not in request.session:
-        request.session["_messages"] = []
-    request.session["_messages"].append({"message": message, "category": category})
-
-
-def get_flashed_messages(request: Request = None, with_categories: bool = True):
-    """Get and clear flash messages from the session.
+def save_metadata(filename: str, prompt: str):
+    """Save image metadata to JSON file."""
+    metadata = {}
+    if METADATA_FILE.exists():
+        with open(METADATA_FILE, "r") as f:
+            metadata = json.load(f)
     
-    Args:
-        request: The request object (optional)
-        with_categories: Whether to return message categories
+    metadata[filename] = {
+        "prompt": prompt,
+        "created_at": datetime.now().isoformat()
+    }
     
-    Returns:
-        List of messages, optionally with categories
-    """
-    if request is None:
-        return []
+    with open(METADATA_FILE, "w") as f:
+        json.dump(metadata, f, indent=2)
+
+def get_metadata():
+    """Read image metadata from JSON file."""
+    if METADATA_FILE.exists():
+        with open(METADATA_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+@app.get("/api/images")
+async def get_images():
+    """Get all images in the gallery with their metadata."""
+    try:
+        logger.info("Fetching images list")
+        images = []
+        metadata = get_metadata()
         
-    messages = request.session.pop("_messages") if "_messages" in request.session else []
-    if with_categories:
-        return messages
-    return [m["message"] for m in messages]
+        # Use the updated get_image_filenames function
+        image_files = get_image_filenames(images_folder)
+        
+        for filename in image_files:
+            file_path = Path(images_folder) / filename
+            file_date = datetime.fromtimestamp(file_path.stat().st_mtime)
+            
+            image_data = {
+                "filename": filename,
+                "date": file_date.isoformat(),
+                "url": f"/api/images/{filename}",
+                "prompt": metadata.get(filename, {}).get("prompt", "No prompt available")
+            }
+            images.append(image_data)
 
+        images.sort(key=lambda x: x["date"], reverse=True)
+        logger.info(f"Successfully retrieved {len(images)} images")
+        return {"images": images}
+    except Exception as e:
+        logger.error(f"Error fetching images: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch images")
 
-# Verify templates directory exists
-templates_dir = Path("templates")
-if not templates_dir.exists():
-    logger.warning("Templates directory not found, creating it")
-    templates_dir.mkdir(parents=True, exist_ok=True)
+@app.post("/api/generate")
+async def generate(prompt: str = Form(...)):
+    """Generate a new colouring page."""
+    logger.info(f"Generating image with prompt: {prompt}")
+    
+    if not prompt or prompt.strip() == "":
+        raise HTTPException(status_code=400, detail="Prompt cannot be empty")
 
-templates = Jinja2Templates(directory="templates")
-templates.env.globals["get_flashed_messages"] = get_flashed_messages
+    try:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        # Create a filename that includes timestamp and a shortened prompt
+        safe_prompt = "".join(c for c in prompt[:30] if c.isalnum() or c in (' ', '-', '_')).strip()
+        safe_prompt = safe_prompt.replace(' ', '_')
+        filename = f"{timestamp}_{safe_prompt}.png"
+        
+        result = create_colouring_page(prompt, output_filename=filename)
+        if result:
+            # Save metadata
+            save_metadata(filename, prompt)
+            
+            return {
+                "success": True,
+                "filename": filename,
+                "url": f"/api/images/{filename}"
+            }
+        raise HTTPException(status_code=500, detail="Failed generating image")
+    except Exception as e:
+        logger.error(f"Error generating image: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-
-@app.get("/", response_class=HTMLResponse)
-async def index(request: Request):
-    """
-    Render the index page with a gallery of images.
-    """
-    logger.info("Accessing index route")
-    images = []
-
-    # Check if images folder exists and create if needed
-    if not os.path.exists(images_folder):
-        logger.warning("Images folder not found, creating it")
-        os.makedirs(images_folder)
-
-    for filename in os.listdir(images_folder):
-        if filename.endswith((".png", ".jpg", ".jpeg")):
-            file_path = os.path.join(images_folder, filename)
-            file_date = datetime.fromtimestamp(os.path.getmtime(file_path))
-            images.append({"filename": filename, "date": file_date})
-
-    # Sort images by date, newest first
-    images.sort(key=lambda x: x["date"], reverse=True)
-
-    return templates.TemplateResponse(
-        "index.html", 
-        {
-            "request": request, 
-            "images": images,
-            "version": VERSION
+@app.get("/api/images/{image_name}")
+async def serve_image(image_name: str):
+    """Serve an image file with download headers."""
+    logger.info(f"Serving image: {image_name}")
+    file_path = os.path.join(images_folder, image_name)
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Image not found")
+    
+    return FileResponse(
+        path=file_path,
+        filename=image_name,  # Specify the filename
+        media_type='image/png',  # Specify the media type
+        headers={
+            "Content-Disposition": f"attachment; filename={image_name}",
+            "Access-Control-Expose-Headers": "Content-Disposition, Content-Type"
         }
     )
 
-
-@app.post("/generate")
-async def generate(request: Request, prompt: str = Form(...)):
-    """
-    Generate a new colouring page based on user input.
-    """
-    logger.info("Running generate route (Generate button clicked)")
-    logger.info(f"Prompt in frontend: {prompt}")
-    
-    if not prompt or prompt.strip() == "":
-        return JSONResponse(
-            status_code=400,
-            content={"error": "Prompt cannot be empty!"}
-        )
-
-    try:
-        logger.info("Calling create_colouring_page function")
-        result = create_colouring_page(prompt)
-        if result:
-            return RedirectResponse(url="/", status_code=303)
-        else:
-            return JSONResponse(
-                status_code=500,
-                content={"error": "Failed to generate image"}
-            )
-    except Exception as e:
-        logger.error(f"Error generating image: {e}")
-        return JSONResponse(
-            status_code=500,
-            content={"error": str(e)}
-        )
-
-
-@app.post("/surprise")
-async def surprise():
-    """
-    Generate a surprise colouring page.
-    """
-    logger.info("Running surprise route (Surprise me! button clicked)")
-    
-    try:
-        logger.info("Calling create_colouring_page function with surprise prompt")
-        result = create_colouring_page("Surprise me!")
-        if result:
-            return RedirectResponse(url="/", status_code=303)
-        else:
-            return JSONResponse(
-                status_code=500,
-                content={"error": "Failed to generate surprise image"}
-            )
-    except Exception as e:
-        logger.error(f"Error generating surprise image: {e}")
-        return JSONResponse(
-            status_code=500,
-            content={"error": str(e)}
-        )
-
-
-@app.get("/images/{filename}")
-async def serve_image(filename: str):
-    """
-    Serve an image file from the images folder.
-    """
-    logger.info(f"Serving image: {filename}")
-    file_path = os.path.join(images_folder, filename)
-    if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="Image not found")
-    return FileResponse(file_path)
-
-
-@app.get("/logs", response_class=HTMLResponse)
-async def show_logs(request: Request):
-    """
-    Display the application logs.
-    """
-    logger.info("Running show_logs route")
-    try:
-        with open("logs/debug.log", "r") as file:
-            log_content = file.read()
-    except Exception as e:
-        logger.error(f"Failed to read log file: {e}")
-        log_content = "Failed to read log file."
-
-    return templates.TemplateResponse(
-        "log.html", {"request": request, "log_content": log_content}
-    )
-
-
-@app.post("/delete/{filename}")
+@app.delete("/api/images/{filename}")
 async def delete_image(filename: str):
-    """
-    Delete an image file.
-    """
+    """Delete an image file and its metadata."""
     try:
         file_path = os.path.join(images_folder, filename)
         if os.path.exists(file_path):
             os.remove(file_path)
-            logger.info(f"Deleted image: {filename}")
-            return JSONResponse(content={"success": True})
-        else:
-            logger.warning(f"File not found: {filename}")
-            raise HTTPException(status_code=404, detail="File not found")
+            
+            # Remove from metadata
+            metadata = get_metadata()
+            if filename in metadata:
+                del metadata[filename]
+                with open(METADATA_FILE, "w") as f:
+                    json.dump(metadata, f, indent=2)
+                    
+            logger.info(f"Deleted image and metadata: {filename}")
+            return {"success": True}
+        raise HTTPException(status_code=404, detail="File not found")
     except Exception as e:
         logger.error(f"Error deleting image {filename}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/health")
+async def health_check():
+    """Health check endpoint."""
+    return {"status": "healthy", "version": VERSION}
 
 if __name__ == "__main__":
-    logger.info("Starting the application")
     import uvicorn
-
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)

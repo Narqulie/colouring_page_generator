@@ -64,7 +64,7 @@ def generate_replicate_image(prompt: str) -> Optional[str]:
                                 - The overall page should offer a sense of wonder and creativity, appealing to both younger and older children.  
                             """,
                 "go_fast": True,
-                "guidance": 10,
+                "guidance": 8,
                 "megapixels": "1",
                 "num_outputs": 1,
                 "aspect_ratio": "1:1",
@@ -107,14 +107,15 @@ def download_and_process_image(image_url: str):
         return None
 
 
-def create_colouring_page(prompt: str) -> Optional[str]:
-    """Generate a coloring page based on the given prompt using Replicate's Flux model.
-
+def create_colouring_page(prompt: str, output_filename: str | None = None) -> str:
+    """Generate a colouring page from a prompt.
+    
     Args:
-        prompt (str): The prompt to generate the coloring page from.
-
+        prompt: The text prompt to generate the image
+        output_filename: Optional specific filename to use
+    
     Returns:
-        Optional[str]: The filename of the saved image, or None if an error occurred.
+        str: Path to the generated image
     """
     logger.info(f"Creating a coloring page with prompt: {prompt}")
     original_prompt = prompt
@@ -139,22 +140,26 @@ def create_colouring_page(prompt: str) -> Optional[str]:
         if not img:
             return None
 
-        # Create images directory and save image
+        # Create images directory
         os.makedirs("images", exist_ok=True)
 
-        safe_prompt = "".join(
-            c for c in original_prompt if c.isalnum() or c in (" ", "_", "-")
-        )[:50]
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = os.path.join("images", f"{timestamp}_{safe_prompt}.png")
+        # Use provided filename or generate one
+        if output_filename:
+            output_path = os.path.join("images", output_filename)
+        else:
+            safe_prompt = "".join(
+                c for c in original_prompt if c.isalnum() or c in (" ", "_", "-")
+            )[:50]
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            output_path = os.path.join("images", f"{timestamp}_{safe_prompt}.png")
 
-        logger.debug(f"Attempting to save image to: {filename}")
+        logger.debug(f"Attempting to save image to: {output_path}")
 
         try:
-            img.save(filename)
-            logger.info(f"Image successfully saved to {filename}")
-            log_generated_images(filename, prompt)
-            return filename
+            img.save(output_path)
+            logger.info(f"Image successfully saved to {output_path}")
+            log_generated_images(output_path, prompt)
+            return output_path
 
         except Exception as save_error:
             logger.error(f"Failed to save image: {save_error}", exc_info=True)
