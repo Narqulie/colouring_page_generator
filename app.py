@@ -25,10 +25,14 @@ app = FastAPI(title="Colouring Page Generator API")
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific origins
+    allow_origins=[
+        "https://colouring-page-generator.onrender.com",
+        "localhost:5173"
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "DELETE"],  # Only specify the methods you actually use
+    allow_headers=["Content-Type", "Authorization"],  # Only specify the headers you need
+    max_age=3600,  # Cache the CORS response for 1 hour
 )
 
 def save_metadata(filename: str, prompt: str):
