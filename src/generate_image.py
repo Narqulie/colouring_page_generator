@@ -38,7 +38,7 @@ def generate_replicate_image(prompt: str) -> Optional[str]:
     """Generate image using Replicate's Flux model
 
     Args:
-        prompt: Text prompt for image generation
+        prompt: Text prompt for image generation, including language context
 
     Returns:
         str: Image URL or None if generation failed
@@ -47,22 +47,7 @@ def generate_replicate_image(prompt: str) -> Optional[str]:
         output = replicate.run(
             "black-forest-labs/flux-dev",
             input={
-                "prompt": f"""
-                                Generate a black-and-white coloring page for children.  
-                                The coloring page should be based on the following description: {prompt}.  
-
-                                Guidelines for the design:  
-                                1. The image must faithfully represent the description, staying true to the theme while allowing for creative, thematic enhancements.  
-                                2. Focus on detailed linework with intricate patterns, textures, and decorative elements on the main subject to make it visually captivating.  
-                                3. Include a rich and engaging background relevant to the theme, such as imaginative scenery, complex geometric patterns, or complementary objects.  
-                                4. Add dynamic and interesting motifs (e.g., swirling shapes, abstract designs, or small thematic accessories) to enhance variety and depth.  
-                                5. Create a mix of bold, large sections for easy coloring and fine, detailed areas for more advanced coloring challenges.  
-
-                                Tone and style:  
-                                - The image should have a sophisticated, artistic style while remaining approachable and suitable for children.  
-                                - Avoid overly simplistic or overly juvenile designs; instead, aim for a design that feels timeless, artistic, and visually engaging.  
-                                - The overall page should offer a sense of wonder and creativity, appealing to both younger and older children.  
-                            """,
+                "prompt": prompt,
                 "go_fast": True,
                 "guidance": 8,
                 "megapixels": "1",
@@ -107,17 +92,18 @@ def download_and_process_image(image_url: str):
         return None
 
 
-def create_colouring_page(prompt: str, output_filename: str | None = None) -> str:
+def create_colouring_page(prompt: str, language: str = "en", output_filename: str | None = None) -> str:
     """Generate a colouring page from a prompt.
     
     Args:
         prompt: The text prompt to generate the image
+        language: The language code of the UI (e.g. 'en', 'es', 'de')
         output_filename: Optional specific filename to use
     
     Returns:
         str: Path to the generated image
     """
-    logger.info(f"Creating a coloring page with prompt: {prompt}")
+    logger.info(f"Creating a coloring page with prompt: {prompt} in language: {language}")
     original_prompt = prompt
 
     if prompt == "Surprise me!":
@@ -129,8 +115,27 @@ def create_colouring_page(prompt: str, output_filename: str | None = None) -> st
         return None
 
     try:
-        # Generate image
-        image_url = generate_replicate_image(prompt)
+        # Modify the prompt to include language information
+        model_prompt = f"""
+                        Generate a black-and-white coloring page for children.  
+                        The coloring page should be based on the following description (in {language}): {prompt}.  
+                        Note: The text prompt is in {language}, please interpret it accordingly.
+                        
+                        Guidelines for the design:  
+                        1. The image must faithfully represent the description, staying true to the theme while allowing for creative, thematic enhancements.  
+                        2. Focus on detailed linework with intricate patterns, textures, and decorative elements on the main subject to make it visually captivating.  
+                        3. Include a rich and engaging background relevant to the theme, such as imaginative scenery, complex geometric patterns, or complementary objects.  
+                        4. Add dynamic and interesting motifs (e.g., swirling shapes, abstract designs, or small thematic accessories) to enhance variety and depth.  
+                        5. Create a mix of bold, large sections for easy coloring and fine, detailed areas for more advanced coloring challenges.  
+
+                        Tone and style:  
+                        - The image should have a sophisticated, artistic style while remaining approachable and suitable for children.  
+                        - Avoid overly simplistic or overly juvenile designs; instead, aim for a design that feels timeless, artistic, and visually engaging.  
+                        - The overall page should offer a sense of wonder and creativity, appealing to both younger and older children.  
+                    """
+
+        # Generate image with updated prompt
+        image_url = generate_replicate_image(model_prompt)
         if not image_url:
             return None
         logger.debug(f"Image URL received: {image_url}")

@@ -27,7 +27,6 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://colouring-page-generator.onrender.com",
-        "localhost:5173"
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "DELETE"],  # Only specify the methods you actually use
