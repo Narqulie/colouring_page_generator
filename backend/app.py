@@ -166,8 +166,8 @@ async def delete_image(image_name: str):
         logger.error(f"❌ Error deleting image: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# Mount static files AFTER all other routes
-app.mount("/static", StaticFiles(directory=str(IMAGES_DIR)), name="static")
+# Mount static files
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn
