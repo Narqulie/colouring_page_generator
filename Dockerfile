@@ -44,6 +44,16 @@ COPY --from=frontend-builder /app/frontend/dist /var/www/html
 RUN mkdir -p backend/logs backend/images && \
     chown -R appuser:appuser /app
 
+# Create necessary nginx directories with correct permissions
+RUN mkdir -p /var/lib/nginx/body /var/lib/nginx/fastcgi \
+    /var/lib/nginx/proxy /var/lib/nginx/scgi \
+    /var/lib/nginx/uwsgi /var/cache/nginx \
+    && chown -R appuser:appuser /var/lib/nginx \
+    && chown -R appuser:appuser /var/cache/nginx \
+    && chown -R appuser:appuser /var/log/nginx \
+    && touch /var/run/nginx.pid \
+    && chown -R appuser:appuser /var/run/nginx.pid
+
 # Configure nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
