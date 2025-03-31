@@ -55,7 +55,7 @@ ENV PYTHONUNBUFFERED=1
 RUN echo '#!/bin/bash\n\
 nginx\n\
 cd /app/backend\n\
-uvicorn app:app --host 0.0.0.0 --port 8000 --workers 2\n\
+uvicorn app:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2\n\
 ' > /app/start.sh && chmod +x /app/start.sh
 
 # Switch to non-root user
