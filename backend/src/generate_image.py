@@ -4,8 +4,7 @@ from datetime import datetime
 from io import BytesIO
 from dotenv import load_dotenv
 from loguru import logger
-from src.helpers import log_generated_images, load_metadata, save_metadata
-from openai import OpenAI
+from .helpers import save_metadata, load_metadata
 import requests
 from PIL import Image
 import replicate
