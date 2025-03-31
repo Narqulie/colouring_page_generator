@@ -1,38 +1,75 @@
-# Build stage for frontend
-FROM node:20-alpine as frontend-build
+# Accept API token as build argument
+ARG REPLICATE_API_TOKEN
+
+# Frontend build stage
+FROM node:20-slim AS frontend-builder
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
-RUN npm install
+RUN npm ci
 COPY frontend/ .
 RUN npm run build
 
-# Build stage for backend
-FROM python:3.11-slim as backend-build
+# Backend build stage
+FROM python:3.11-slim AS backend-builder
 WORKDIR /app/backend
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential && \
+    rm -rf /var/lib/apt/lists/*
 COPY backend/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-COPY backend/ .
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
 
 # Final stage
 FROM python:3.11-slim
+
+# Create non-root user for security
+RUN useradd -m -u 1000 appuser
+
+# Set working directory
 WORKDIR /app
 
-# Copy backend
-COPY --from=backend-build /app/backend /app/backend
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1-mesa-glx libglib2.0-0 nginx && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy backend wheels and install Python packages
+COPY --from=backend-builder /app/wheels /wheels
+COPY --from=backend-builder /app/requirements.txt .
+RUN pip install --no-cache /wheels/*
+
+# Copy backend application code
+COPY --chown=appuser:appuser backend/ ./backend/
 
 # Copy frontend build
-COPY --from=frontend-build /app/frontend/dist /app/frontend/dist
+COPY --from=frontend-builder /app/frontend/dist /var/www/html
 
-# Install backend dependencies
-WORKDIR /app/backend
-RUN pip install --no-cache-dir -r requirements.txt
+# Create necessary directories with correct permissions
+RUN mkdir -p backend/logs backend/images && \
+    chown -R appuser:appuser /app
+
+# Configure nginx
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Set environment variables
-ENV PYTHONPATH=/app/backend
-ENV PORT=8000
+ENV REPLICATE_API_TOKEN=${REPLICATE_API_TOKEN}
+ENV PYTHONUNBUFFERED=1
 
-# Expose port
-EXPOSE 8000
+# Create startup script
+RUN echo '#!/bin/bash\n\
+nginx\n\
+cd /app/backend\n\
+uvicorn app:app --host 0.0.0.0 --port 8000 --workers 2\n\
+' > /app/start.sh && chmod +x /app/start.sh
 
-# Start the application
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"] 
+# Switch to non-root user
+USER appuser
+
+# Expose ports
+EXPOSE 80 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s \
+  CMD curl -f http://localhost:8000/health || exit 1
+
+# Start both services
+CMD ["/app/start.sh"] 
