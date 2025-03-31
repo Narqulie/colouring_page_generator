@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: colouring-page-generator
+    env: docker
+    buildCommand: docker build -t app .
+    startCommand: docker run -p $PORT:$PORT -e PORT=$PORT app
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: REPLICATE_API_TOKEN
+        sync: false 

@@ -68,9 +68,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount the static files BEFORE any other routes
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
-
 @app.get("/health")
 async def health_check():
     """Health check endpoint for monitoring"""
@@ -81,13 +78,13 @@ async def health_check():
         "timestamp": datetime.now().isoformat()
     }
 
-@app.get("/api")
+@app.get("/api/version")
 async def read_root():
     """Root endpoint returning API version"""
     logger.info("🌐 API root endpoint accessed")
     return {"version": __version__}
 
-@app.get("/images")
+@app.get("/api/images")
 async def get_images():
     """Get list of available images"""
     logger.info("📸 Fetching available images")
@@ -99,7 +96,7 @@ async def get_images():
         logger.error(f"❌ Error fetching images: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/generate")
+@app.post("/api/generate")
 async def generate_image(
     prompt: str = Form(...),
     language: str = Form("en"),
@@ -132,7 +129,7 @@ async def generate_image(
         logger.error(f"❌ Error generating image: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/images/{image_name}")
+@app.get("/api/images/{image_name}")
 async def get_image(image_name: str):
     """Serve an image file"""
     logger.info(f"🖼️ Serving image: {image_name}")
@@ -142,7 +139,7 @@ async def get_image(image_name: str):
         raise HTTPException(status_code=404, detail="Image not found")
     return FileResponse(str(image_path))
 
-@app.delete("/images/{image_name}")
+@app.delete("/api/images/{image_name}")
 async def delete_image(image_name: str):
     """Delete an image"""
     # Decode the URL-encoded filename
@@ -168,6 +165,58 @@ async def delete_image(image_name: str):
     except Exception as e:
         logger.error(f"❌ Error deleting image: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/{full_path:path}")
+async def serve_spa(full_path: str):
+    """Serve the SPA for any unmatched routes"""
+    logger.info(f"🌐 SPA Route requested: /{full_path}")
+    
+    # Check if static file exists first
+    static_path = Path("static") / full_path
+    if static_path.is_file():
+        logger.info(f"📄 Serving static file: {static_path}")
+        return FileResponse(str(static_path))
+    
+    # If not a static file, serve index.html
+    logger.info(f"🔄 Route {full_path} not found, serving SPA index.html")
+    
+    if not Path("static/index.html").exists():
+        logger.error("❌ Frontend build missing! No static/index.html found")
+        raise HTTPException(status_code=500, detail="Frontend build not found")
+        
+    return FileResponse("static/index.html")
+
+# Add logging to the static files mount
+class LoggingStaticFiles(StaticFiles):
+    async def get_response(self, path: str, scope):
+        logger.info(f"📁 Static file requested: {path}")
+        try:
+            response = await super().get_response(path, scope)
+            logger.info(f"✅ Static file served successfully: {path}")
+            return response
+        except Exception as e:
+            logger.error(f"❌ Error serving static file {path}: {str(e)}")
+            raise
+
+# Finally, mount static files LAST with logging
+app.mount("/", LoggingStaticFiles(directory="static", html=True), name="static")
+
+# Add startup event handler
+@app.on_event("startup")
+async def startup_event():
+    """Log information about the static files directory on startup"""
+    static_dir = Path("static")
+    if not static_dir.exists():
+        logger.error("❌ Static directory not found!")
+        return
+        
+    files = list(static_dir.rglob("*"))
+    logger.info(f"📂 Static directory contents ({len(files)} files):")
+    for file in files:
+        if file.is_file():
+            logger.info(f"  └─ 📄 {file.relative_to(static_dir)}")
+        else:
+            logger.info(f"  └─ 📁 {file.relative_to(static_dir)}/")
 
 if __name__ == "__main__":
     import uvicorn
