@@ -68,6 +68,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount the static files BEFORE any other routes
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint for monitoring"""
@@ -78,10 +81,10 @@ async def health_check():
         "timestamp": datetime.now().isoformat()
     }
 
-@app.get("/")
+@app.get("/api")
 async def read_root():
     """Root endpoint returning API version"""
-    logger.info("🌐 Root endpoint accessed")
+    logger.info("🌐 API root endpoint accessed")
     return {"version": __version__}
 
 @app.get("/images")
@@ -165,9 +168,6 @@ async def delete_image(image_name: str):
     except Exception as e:
         logger.error(f"❌ Error deleting image: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
-
-# Mount static files
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn
