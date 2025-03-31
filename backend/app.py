@@ -68,6 +68,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for monitoring"""
+    logger.info("💓 Health check accessed")
+    return {
+        "status": "healthy",
+        "version": __version__,
+        "timestamp": datetime.now().isoformat()
+    }
+
 @app.get("/")
 async def read_root():
     """Root endpoint returning API version"""
