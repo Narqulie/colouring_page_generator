@@ -11,12 +11,9 @@ RUN npm run build
 
 # Backend build stage
 FROM python:3.11-slim AS backend-builder
-WORKDIR /app/backend
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential && \
-    rm -rf /var/lib/apt/lists/*
+WORKDIR /app
 COPY backend/requirements.txt .
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /wheels -r requirements.txt
 
 # Final stage
 FROM python:3.11-slim
@@ -33,7 +30,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 # Copy backend wheels and install Python packages
-COPY --from=backend-builder /app/wheels /wheels
+COPY --from=backend-builder /wheels /wheels
 COPY --from=backend-builder /app/requirements.txt .
 RUN pip install --no-cache /wheels/*
 
