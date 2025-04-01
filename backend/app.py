@@ -1,7 +1,7 @@
 import os
 import sys
 from pathlib import Path
-from fastapi import FastAPI, HTTPException, Form
+from fastapi import FastAPI, HTTPException, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -170,10 +170,10 @@ async def delete_image(image_name: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/{full_path:path}")
-async def serve_spa(full_path: str):
+async def serve_spa(full_path: str, request: Request):
     """Serve the SPA for any unmatched routes"""
     logger.debug(f"🔍 Full request path: {full_path}")
-    logger.debug(f"🔍 Request headers: {request.headers}")  # Add this to see what's coming in
+    logger.debug(f"🔍 Request headers: {request.headers}")  # Now request is properly defined
     
     # If it starts with 'undefined', strip it off
     if full_path.startswith('undefined/'):
