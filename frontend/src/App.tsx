@@ -49,7 +49,7 @@ export default function App() {
   // Function to fetch images from the API
   const fetchImages = async () => {
     try {
-      const API_URL = import.meta.env.VITE_API_URL;
+      const API_URL = import.meta.env.VITE_API_URL || '/api';
       console.log('Fetching images from:', `${API_URL}/images`);
       const response = await fetch(`${API_URL}/images`);
       if (!response.ok) {
@@ -71,7 +71,7 @@ export default function App() {
     setError(null);
     
     try {
-      const API_URL = import.meta.env.VITE_API_URL;
+      const API_URL = import.meta.env.VITE_API_URL || '/api';
       const formData = new FormData();
       formData.append('prompt', prompt);
       formData.append('language', language);
@@ -112,7 +112,8 @@ export default function App() {
 
   const handleDelete = async (image: Image) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/images/${image.filename}`, {
+      const API_URL = import.meta.env.VITE_API_URL || '/api';
+      const response = await fetch(`${API_URL}/images/${image.filename}`, {
         method: 'DELETE',
       })
       
@@ -155,7 +156,7 @@ export default function App() {
       <ImageGallery 
         images={(images || []).map(img => ({
           id: img.filename,
-          url: img.url ? (img.url.startsWith('http') ? img.url : `${import.meta.env.VITE_API_URL}${img.url}`) : '',
+          url: img.url ? (img.url.startsWith('http') ? img.url : `${import.meta.env.VITE_API_URL || '/api'}${img.url}`) : '',
           prompt: img.prompt || '',
           filename: img.filename,
           date: img.date,

@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && VITE_API_URL=/api vite build",
+    "build:prod": "tsc -b && VITE_API_URL=/api vite build && npm run copy-to-backend",
+    "copy-to-backend": "cp -r dist/* ../backend/static/",
     "lint": "eslint .",
     "preview": "vite preview"
   },
