@@ -28,4 +28,4 @@ RUN mkdir -p logs images && \
 ENV PYTHONUNBUFFERED=1
 
 # Start command
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "${PORT:-10000}"] 
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "${PORT:10000}"] 
