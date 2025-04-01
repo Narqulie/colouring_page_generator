@@ -26,14 +26,16 @@ export const translations = {
     },
     themeOptions: {
       none: "None (Auto-select)",
-      animals: "Animals",
-      nature: "Nature",
-      fantasy: "Fantasy",
-      space: "Space",
-      vehicles: "Vehicles",
-      adventure: "Adventure",
-      everyday: "Everyday Life",
-      education: "Education & Learning"
+      cartoon: "Cartoon",
+      cute: "Cute (Kawaii)",
+      realistic: "Realistic",
+      whimsical: "Whimsical",
+      doodle: "Doodle",
+      geometric: "Geometric",
+      "mandala-inspired": "Mandala Inspired",
+      storybook: "Storybook",
+      minimalist: "Minimalist",
+      comic: "Comic"
     }
   },
   fi: {
@@ -63,14 +65,16 @@ export const translations = {
     },
     themeOptions: {
       none: "Ei valintaa (Automaattinen)",
-      animals: "Eläimet",
-      nature: "Luonto",
-      fantasy: "Fantasia",
-      space: "Avaruus",
-      vehicles: "Ajoneuvot",
-      adventure: "Seikkailu",
-      everyday: "Arki",
-      education: "Opetus & Oppiminen"
+      cartoon: "Sarjakuva",
+      cute: "Söpö (Kawaii)",
+      realistic: "Realistinen",
+      whimsical: "Fantastinen",
+      doodle: "Piirustus",
+      geometric: "Geometrinen",
+      "mandala-inspired": "Mandala-inspiroitu",
+      storybook: "Satu",
+      minimalist: "Minimalistinen",
+      comic: "Sarjakuva"
     }
   }
 } as const; 

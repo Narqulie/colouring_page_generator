@@ -18,6 +18,7 @@ PROJECT_ROOT = Path(__file__).parent
 LOG_DIR = PROJECT_ROOT / "logs"
 IMAGES_DIR = PROJECT_ROOT / "images"
 METADATA_FILE = PROJECT_ROOT / "image_metadata.json"
+STATIC_DIR = PROJECT_ROOT / "static"
 
 # Configure logging
 logger.remove()  # Remove default handler
@@ -42,6 +43,7 @@ logger.add(
 # Ensure directories exist
 LOG_DIR.mkdir(exist_ok=True)
 IMAGES_DIR.mkdir(exist_ok=True)
+STATIC_DIR.mkdir(exist_ok=True)
 
 # Log startup information
 logger.info(f"🚀 Starting application version {__version__}")
@@ -49,6 +51,7 @@ logger.info(f"🐍 Python version: {sys.version}")
 logger.info(f"📂 Working directory: {PROJECT_ROOT.absolute()}")
 logger.info(f"📁 Images directory: {IMAGES_DIR.absolute()}")
 logger.info(f"📄 Metadata file: {METADATA_FILE.absolute()}")
+logger.info(f"🌐 Static files directory: {STATIC_DIR.absolute()}")
 
 app = FastAPI()
 
@@ -210,7 +213,7 @@ class LoggingStaticFiles(StaticFiles):
             raise
 
 # Finally, mount static files LAST with logging
-app.mount("/", LoggingStaticFiles(directory="static", html=True), name="static")
+app.mount("/", LoggingStaticFiles(directory=str(STATIC_DIR), html=True), name="static")
 
 # Add startup event handler
 @app.on_event("startup")

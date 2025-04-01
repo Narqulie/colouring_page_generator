@@ -122,7 +122,7 @@ def generate_replicate_image(prompt: str, language: str = "en", complexity: str 
                 "prompt": system_prompt,
                 "aspect_ratio": "1:1",
                 "output_format": "webp",
-                "output_quality": 80,
+                "output_quality": 100,
                 "safety_tolerance": 2,
                 "prompt_upsampling": True
             },

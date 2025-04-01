@@ -150,7 +150,7 @@ export default function App() {
       {/* Conditional rendering: Only show error div if there's an error */}
       {error && <div className="error-message">{error}</div>}
       
-
+      {healthError && <div className="error">Health Check Error: {healthError}</div>}
       
       <ImageGallery 
         images={(images || []).map(img => ({
