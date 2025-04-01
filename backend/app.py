@@ -169,8 +169,19 @@ async def delete_image(image_name: str):
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):
     """Serve the SPA for any unmatched routes"""
-    logger.info(f"🌐 SPA Route requested: /{full_path}")
+    logger.debug(f"🔍 Full request path: {full_path}")
+    logger.debug(f"🔍 Request headers: {request.headers}")  # Add this to see what's coming in
     
+    # If it starts with 'undefined', strip it off
+    if full_path.startswith('undefined/'):
+        full_path = full_path[10:]  # Remove 'undefined/'
+        logger.warning(f"⚠️ Stripped 'undefined/' from request path, now: {full_path}")
+
+    # Check if it's an API route that got here by mistake
+    if full_path.startswith('api/'):
+        logger.error(f"❌ API route reached SPA handler: {full_path}")
+        raise HTTPException(status_code=404, detail="API route not found")
+
     # Check if static file exists first
     static_path = Path("static") / full_path
     if static_path.is_file():
