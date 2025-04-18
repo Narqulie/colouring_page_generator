@@ -23,115 +23,146 @@ export function ImageModal({
     prompt: image.prompt,
   })
 
-  const handleSave = () => {
+  const getFullUrl = (url: string): string => {
+    console.log('getFullUrl input:', { url });
+    
+    // If it's already an absolute URL or data URL, return as is
+    if (url.startsWith('http') || url.startsWith('data:')) {
+      return url;
+    }
+    
+    // Otherwise, treat it as a relative path from the current origin
+    // This matches the API_BASE pattern in api/index.ts
+    const fullUrl = url.startsWith('/') ? url : `/${url}`;
+    console.log('getFullUrl output:', fullUrl);
+    return fullUrl;
+  };
+
+  const handleSave = async () => {
     try {
-      // Use prompt as filename, sanitize it and limit length
       const sanitizedPrompt = image.prompt
         .replace(/[^a-z0-9]/gi, '_')
         .toLowerCase()
         .slice(0, 50)
       const fileName = `${sanitizedPrompt}.webp`
+      const fullUrl = getFullUrl(image.url)
 
-      const fullUrl = image.url.startsWith('http')
-        ? image.url
-        : `${import.meta.env.VITE_API_URL}${image.url}`
+      console.log('Attempting to download image from:', fullUrl)
 
+      // Fetch the image first to ensure it's loaded
+      const response = await fetch(fullUrl)
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.statusText}`)
+      }
+      const blob = await response.blob()
+      
+      // Create object URL for the blob
+      const objectUrl = URL.createObjectURL(blob)
+      
       const link = document.createElement('a')
-      link.href = fullUrl
+      link.href = objectUrl
       link.download = fileName
-      link.style.display = 'none'
-
-      // Add to document, click, and remove
       document.body.appendChild(link)
       link.click()
-
+      
       // Clean up
-      setTimeout(() => {
-        document.body.removeChild(link)
-      }, 100)
+      URL.revokeObjectURL(objectUrl)
+      document.body.removeChild(link)
     } catch (error) {
       console.error('Error downloading image:', error)
+      alert('Failed to download image. Please try again.')
     }
   }
 
   const handlePrint = () => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
+    try {
+      const printWindow = window.open('', '_blank')
+      if (!printWindow) {
+        throw new Error('Failed to open print window')
+      }
 
-    const fullUrl = image.url.startsWith('http') 
-      ? image.url 
-      : `${import.meta.env.VITE_API_URL}${image.url}`;
+      const fullUrl = getFullUrl(image.url)
+      console.log('Preparing to print image from:', fullUrl)
 
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>${image.prompt}</title>
-          <style>
-            @media print {
-              @page {
-                size: auto;
-                margin: 1cm;
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>${image.prompt}</title>
+            <style>
+              @media print {
+                @page {
+                  size: auto;
+                  margin: 1cm;
+                }
+                
+                html, body {
+                  margin: 0;
+                  padding: 0;
+                  height: 100%;
+                }
+                
+                body {
+                  display: flex;
+                  flex-direction: column;
+                  align-items: center;
+                  justify-content: center;
+                }
+                
+                .print-container {
+                  width: 100%;
+                  height: 100%;
+                  display: flex;
+                  flex-direction: column;
+                  align-items: center;
+                  justify-content: center;
+                  page-break-inside: avoid;
+                }
+                
+                img {
+                  max-width: 100%;
+                  max-height: calc(100vh - 4cm);
+                  object-fit: contain;
+                  margin: auto;
+                }
+                
+                .watermark {
+                  margin-top: 0.5cm;
+                  font-family: Arial, sans-serif;
+                  font-size: 10pt;
+                  color: #666;
+                  text-align: center;
+                }
               }
-              
-              html, body {
-                margin: 0;
-                padding: 0;
-                height: 100%;
-              }
-              
-              body {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-              }
-              
-              .print-container {
-                width: 100%;
-                height: 100%;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                page-break-inside: avoid;
-              }
-              
-              img {
-                max-width: 100%;
-                max-height: calc(100vh - 4cm);
-                object-fit: contain;
-                margin: auto;
-              }
-              
-              .watermark {
-                margin-top: 0.5cm;
-                font-family: Arial, sans-serif;
-                font-size: 10pt;
-                color: #666;
-                text-align: center;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="print-container">
-            <img 
-              src="${fullUrl}" 
-              alt="${image.prompt}"
-              onload="setTimeout(function() { window.print(); window.close(); }, 500);"
-            />
-            <div class="watermark">
-              ${image.prompt}
-              <br>
-              Generated with ColouringPageGenerator
+            </style>
+          </head>
+          <body>
+            <div class="print-container">
+              <img 
+                src="${fullUrl}" 
+                alt="${image.prompt}"
+                onerror="console.error('Failed to load image for printing'); window.close();"
+                onload="setTimeout(() => {
+                  console.log('Image loaded, initiating print...');
+                  window.print();
+                  setTimeout(() => window.close(), 1000);
+                }, 1000);"
+              />
+              <div class="watermark">
+                ${image.prompt}
+                <br>
+                Generated with ColouringPageGenerator
+              </div>
             </div>
-          </div>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-  };
+          </body>
+        </html>
+      `)
+      printWindow.document.close()
+    } catch (error) {
+      console.error('Error preparing print window:', error)
+      alert('Failed to prepare print window. Please try again.')
+    }
+  }
 
   const handleReroll = () => {
     if (!image?.prompt || !onReroll) return

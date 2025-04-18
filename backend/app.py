@@ -28,7 +28,7 @@ logger.add(
     level="DEBUG",
     colorize=True,
     backtrace=True,
-    diagnose=True
+    diagnose=True,
 )
 logger.add(
     LOG_DIR / "debug.log",
@@ -37,7 +37,7 @@ logger.add(
     rotation="1 day",
     retention="7 days",
     backtrace=True,
-    diagnose=True
+    diagnose=True,
 )
 
 # Ensure directories exist
@@ -60,7 +60,7 @@ is_production = os.getenv("ENVIRONMENT", "development") == "production"
 allowed_origins = [
     "http://localhost:5173",  # Vite dev server
     "http://localhost:8000",  # Backend dev server
-    "https://*.onrender.com", # Render domains
+    "https://*.onrender.com",  # Render domains
 ]
 
 app.add_middleware(
@@ -71,6 +71,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint for monitoring"""
@@ -78,14 +79,16 @@ async def health_check():
     return {
         "status": "healthy",
         "version": __version__,
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }
+
 
 @app.get("/api/version")
 async def read_root():
     """Root endpoint returning API version"""
     logger.info("🌐 API root endpoint accessed")
     return {"version": __version__}
+
 
 @app.get("/api/images")
 async def get_images():
@@ -99,22 +102,25 @@ async def get_images():
         logger.error(f"❌ Error fetching images: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.post("/api/generate")
 async def generate_image(
     prompt: str = Form(...),
     language: str = Form("en"),
     complexity: str = Form("medium"),
-    theme: str = Form("none")
+    theme: str = Form("none"),
 ):
     """Generate a new coloring page"""
-    logger.info(f"🎨 Generating new image with prompt: {prompt} in language: {language}, complexity: {complexity}, theme: {theme}")
+    logger.info(
+        f"🎨 Generating new image with prompt: {prompt} in language: {language}, complexity: {complexity}, theme: {theme}"
+    )
     try:
         image_path = create_colouring_page(prompt, language, complexity, theme)
         if not image_path:
             raise HTTPException(status_code=500, detail="Failed to generate image")
-            
+
         logger.info(f"✅ Image generated successfully: {image_path}")
-        
+
         # Update metadata
         metadata = load_metadata(str(METADATA_FILE))
         metadata[image_path] = {
@@ -122,15 +128,16 @@ async def generate_image(
             "language": language,
             "complexity": complexity,
             "theme": theme,
-            "created_at": str(datetime.now().isoformat())
+            "created_at": str(datetime.now().isoformat()),
         }
         save_metadata(metadata, str(METADATA_FILE))
         logger.info("💾 Metadata updated")
-        
+
         return {"image_path": image_path}
     except Exception as e:
         logger.error(f"❌ Error generating image: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/api/images/{image_name}")
 async def get_image(image_name: str):
@@ -141,6 +148,7 @@ async def get_image(image_name: str):
         logger.error(f"❌ Image not found: {image_path}")
         raise HTTPException(status_code=404, detail="Image not found")
     return FileResponse(str(image_path))
+
 
 @app.delete("/api/images/{image_name}")
 async def delete_image(image_name: str):
@@ -153,35 +161,38 @@ async def delete_image(image_name: str):
         if not image_path.exists():
             logger.error(f"❌ Image not found: {image_path}")
             raise HTTPException(status_code=404, detail="Image not found")
-        
+
         image_path.unlink()
         logger.info(f"✅ Image deleted: {image_path}")
-        
+
         # Update metadata
         metadata = load_metadata(str(METADATA_FILE))
         if decoded_name in metadata:
             del metadata[decoded_name]
             save_metadata(metadata, str(METADATA_FILE))
             logger.info("💾 Metadata updated")
-        
+
         return {"message": "Image deleted successfully"}
     except Exception as e:
         logger.error(f"❌ Error deleting image: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str, request: Request):
     """Serve the SPA for any unmatched routes"""
     logger.debug(f"🔍 Full request path: {full_path}")
-    logger.debug(f"🔍 Request headers: {request.headers}")  # Now request is properly defined
-    
+    logger.debug(
+        f"🔍 Request headers: {request.headers}"
+    )  # Now request is properly defined
+
     # If it starts with 'undefined', strip it off
-    if full_path.startswith('undefined/'):
+    if full_path.startswith("undefined/"):
         full_path = full_path[10:]  # Remove 'undefined/'
         logger.warning(f"⚠️ Stripped 'undefined/' from request path, now: {full_path}")
 
     # Check if it's an API route that got here by mistake
-    if full_path.startswith('api/'):
+    if full_path.startswith("api/"):
         logger.error(f"❌ API route reached SPA handler: {full_path}")
         raise HTTPException(status_code=404, detail="API route not found")
 
@@ -190,15 +201,16 @@ async def serve_spa(full_path: str, request: Request):
     if static_path.is_file():
         logger.info(f"📄 Serving static file: {static_path}")
         return FileResponse(str(static_path))
-    
+
     # If not a static file, serve index.html
     logger.info(f"🔄 Route {full_path} not found, serving SPA index.html")
-    
+
     if not Path("static/index.html").exists():
         logger.error("❌ Frontend build missing! No static/index.html found")
         raise HTTPException(status_code=500, detail="Frontend build not found")
-        
+
     return FileResponse("static/index.html")
+
 
 # Add logging to the static files mount
 class LoggingStaticFiles(StaticFiles):
@@ -212,8 +224,10 @@ class LoggingStaticFiles(StaticFiles):
             logger.error(f"❌ Error serving static file {path}: {str(e)}")
             raise
 
+
 # Finally, mount static files LAST with logging
 app.mount("/", LoggingStaticFiles(directory=str(STATIC_DIR), html=True), name="static")
+
 
 # Add startup event handler
 @app.on_event("startup")
@@ -223,7 +237,7 @@ async def startup_event():
     if not static_dir.exists():
         logger.error("❌ Static directory not found!")
         return
-        
+
     files = list(static_dir.rglob("*"))
     logger.info(f"📂 Static directory contents ({len(files)} files):")
     for file in files:
@@ -232,13 +246,9 @@ async def startup_event():
         else:
             logger.info(f"  └─ 📁 {file.relative_to(static_dir)}/")
 
+
 if __name__ == "__main__":
     import uvicorn
+
     logger.info("🚀 Starting development server")
-    uvicorn.run(
-        "app:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
-        log_level="debug"
-    )
+    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True, log_level="debug")

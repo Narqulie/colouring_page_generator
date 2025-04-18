@@ -29,9 +29,11 @@ logger.add(
     format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
 )
 
+
 # Ensure directories exist
 LOG_DIR.mkdir(exist_ok=True)
 IMAGES_DIR.mkdir(exist_ok=True)
+
 
 def setup_replicate() -> Optional[bool]:
     """Initialize Replicate with API token from environment"""
@@ -42,10 +44,10 @@ def setup_replicate() -> Optional[bool]:
         if not api_token:
             logger.error("❌ REPLICATE_API_TOKEN environment variable is not set")
             return None
-            
+
         # Set the token in the environment
         os.environ["REPLICATE_API_TOKEN"] = api_token
-        
+
         # Test the token by making a simple API call to list models
         try:
             replicate.models.get("black-forest-labs/flux-1.1-pro")
@@ -54,26 +56,30 @@ def setup_replicate() -> Optional[bool]:
         except Exception as e:
             logger.error(f"❌ Failed to validate Replicate API token: {e}")
             return None
-            
+
     except Exception as e:
         logger.error(f"❌ Error setting up Replicate: {e}")
         return None
 
 
-def generate_replicate_image(prompt: str, language: str = "en", complexity: str = "medium", theme: str = "none") -> Optional[str]:
+def generate_replicate_image(
+    prompt: str, language: str = "en", complexity: str = "medium", theme: str = "none"
+) -> Optional[str]:
     """
     Generate image using Replicate's Flux model
-    
+
     Args:
         prompt: The user's prompt describing what to draw
         language: The language of the prompt (default: "en")
         complexity: The complexity level of the image (default: "medium")
         theme: The art style theme to apply (default: "none")
-        
+
     Returns:
         The URL of the generated image, or None if generation failed
     """
-    logger.info(f"🎨 Generating image with prompt: {prompt} in language: {language}, complexity: {complexity}, art style: {theme}")
+    logger.info(
+        f"🎨 Generating image with prompt: {prompt} in language: {language}, complexity: {complexity}, art style: {theme}"
+    )
 
     # Art style definitions
     art_style_prompts = {
@@ -86,7 +92,7 @@ def generate_replicate_image(prompt: str, language: str = "en", complexity: str 
         "mandala-inspired": "Include kid-friendly repetitive, decorative patterns inspired by mandalas.",
         "storybook": "Draw in classic fairytale illustration style.",
         "minimalist": "Keep it clean and simple with minimal details and clear outlines.",
-        "comic": "Use bold lines and dynamic expressions in comic book style, avoiding heavy shading."
+        "comic": "Use bold lines and dynamic expressions in comic book style, avoiding heavy shading.",
     }
 
     # Get the art style prompt addition
@@ -113,7 +119,7 @@ def generate_replicate_image(prompt: str, language: str = "en", complexity: str 
             •	Maintain a well-balanced composition with engaging details.
             •	Keep the overall design suitable for young children, adapting complexity as needed.
     """
-    
+
     try:
         logger.debug("Calling Replicate API...")
         output = replicate.run(
@@ -124,7 +130,7 @@ def generate_replicate_image(prompt: str, language: str = "en", complexity: str 
                 "output_format": "webp",
                 "output_quality": 100,
                 "safety_tolerance": 2,
-                "prompt_upsampling": True
+                "prompt_upsampling": True,
             },
         )
         logger.debug(f"Raw Replicate API response: {output}")
@@ -135,7 +141,7 @@ def generate_replicate_image(prompt: str, language: str = "en", complexity: str 
             return None
 
         url = str(output).strip()
-        if not url.startswith('http'):
+        if not url.startswith("http"):
             logger.error(f"❌ Invalid URL format: {url}")
             return None
 
@@ -156,13 +162,16 @@ def generate_replicate_image(prompt: str, language: str = "en", complexity: str 
         logger.exception(f"❌ Failed to generate Replicate image: {e}")
         return None
 
+
 def download_and_process_image(image_url: str):
     """Download and process image from URL"""
     logger.info(f"📥 Downloading image from URL: {image_url}")
     try:
         response = requests.get(image_url)
         if response.status_code != 200:
-            logger.error(f"❌ Failed to download image. Status code: {response.status_code}")
+            logger.error(
+                f"❌ Failed to download image. Status code: {response.status_code}"
+            )
             return None
 
         logger.debug("Processing downloaded image...")
@@ -173,58 +182,69 @@ def download_and_process_image(image_url: str):
         logger.exception(f"❌ Error downloading/processing image: {e}")
         return None
 
-def create_colouring_page(prompt: str, language: str = "en", complexity: str = "medium", theme: str = "none", original_prompt: str = None) -> Optional[str]:
+
+def create_colouring_page(
+    prompt: str,
+    language: str = "en",
+    complexity: str = "medium",
+    theme: str = "none",
+    original_prompt: str = None,
+) -> Optional[str]:
     """
     Create a colouring page from a prompt.
-    
+
     Args:
         prompt: The prompt to generate the image from
         language: The language of the prompt (default: "en")
         complexity: The complexity level of the image (default: "medium")
         theme: The theme of the image (default: "none")
         original_prompt: The original prompt for filename creation (default: None)
-        
+
     Returns:
         The filename of the created image, or None if creation failed
     """
     if not prompt:
         logger.error("❌ No prompt provided")
         return None
-        
+
     if original_prompt is None:
         original_prompt = prompt
-        
-    logger.info(f"🎨 Creating colouring page for prompt: {prompt} in language: {language}, complexity: {complexity}, theme: {theme}")
-    
+
+    logger.info(
+        f"🎨 Creating colouring page for prompt: {prompt} in language: {language}, complexity: {complexity}, theme: {theme}"
+    )
+
     # Initialize Replicate first
     if not setup_replicate():
         logger.error("❌ Failed to initialize Replicate")
         return None
-    
+
     # Create images directory if it doesn't exist
     IMAGES_DIR.mkdir(exist_ok=True)
-    
+
     # Generate a safe filename from the original prompt
-    safe_filename = "".join(c for c in original_prompt if c.isalnum() or c in (' ', '-', '_')).rstrip()
+    safe_filename = "".join(
+        c for c in original_prompt if c.isalnum() or c in (" ", "-", "_")
+    ).rstrip()
     safe_filename = f"{safe_filename}_{int(time.time())}.png"
-    
+
     # First generate the image URL
     image_url = generate_replicate_image(prompt, language, complexity, theme)
     if not image_url:
         logger.error("❌ Failed to generate image URL")
         return None
-        
+
     # Download and process the image
     img = download_and_process_image(image_url)
     if img is None:
         logger.error("❌ Failed to download and process image")
         return None
-    
+
     # Save the image
     output_path = IMAGES_DIR / safe_filename
     img.save(output_path, "PNG", quality=95)
     logger.info(f"✅ Saved image to {output_path}")
-    
+
     # Update metadata
     metadata = load_metadata(str(METADATA_FILE))
     metadata[safe_filename] = {
@@ -233,9 +253,9 @@ def create_colouring_page(prompt: str, language: str = "en", complexity: str = "
         "complexity": complexity,
         "theme": theme,
         "created_at": datetime.now().isoformat(),
-        "model_prompt": prompt
+        "model_prompt": prompt,
     }
     save_metadata(metadata, str(METADATA_FILE))
     logger.info(f"✅ Updated metadata for {safe_filename}")
-    
+
     return safe_filename

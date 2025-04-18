@@ -30,12 +30,9 @@ export const translations = {
       cute: "Cute (Kawaii)",
       realistic: "Realistic",
       whimsical: "Whimsical",
-      doodle: "Doodle",
       geometric: "Geometric",
       "mandala-inspired": "Mandala Inspired",
-      storybook: "Storybook",
       minimalist: "Minimalist",
-      comic: "Comic"
     }
   },
   fi: {
@@ -68,13 +65,10 @@ export const translations = {
       cartoon: "Sarjakuva",
       cute: "Söpö (Kawaii)",
       realistic: "Realistinen",
-      whimsical: "Fantastinen",
-      doodle: "Piirustus",
+      whimsical: "Fantasia",
       geometric: "Geometrinen",
       "mandala-inspired": "Mandala-inspiroitu",
-      storybook: "Satu",
       minimalist: "Minimalistinen",
-      comic: "Sarjakuva"
     }
   }
 } as const; 
