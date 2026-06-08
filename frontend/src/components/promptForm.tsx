@@ -2,31 +2,27 @@ import { useState } from 'react'
 import ReactiveButton from 'reactive-button'
 
 interface PromptFormProps {
-  onSubmit: (prompt: string) => Promise<void>
+  onSubmit: (prompt: string, tags: string[]) => Promise<void>
   prompt: string
   setPrompt: (prompt: string) => void
 }
 
 export const PromptForm = ({ onSubmit, prompt, setPrompt }: PromptFormProps) => {
   const [buttonState, setButtonState] = useState('idle')
+  const [tagInput, setTagInput] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setButtonState('loading')
-
+    const tags = tagInput.split(',').map(t => t.trim()).filter(Boolean)
     try {
-      await onSubmit(prompt)
+      await onSubmit(prompt, tags)
       setButtonState('success')
-
-      setTimeout(() => {
-        setButtonState('idle')
-      }, 2000)
+      setTagInput('')
+      setTimeout(() => setButtonState('idle'), 2000)
     } catch {
       setButtonState('error')
-
-      setTimeout(() => {
-        setButtonState('idle')
-      }, 2000)
+      setTimeout(() => setButtonState('idle'), 2000)
     }
   }
 
@@ -41,7 +37,16 @@ export const PromptForm = ({ onSubmit, prompt, setPrompt }: PromptFormProps) => 
           disabled={buttonState === 'loading'}
         />
       </div>
-
+      <div className="form-group">
+        <input
+          type="text"
+          value={tagInput}
+          onChange={(e) => setTagInput(e.target.value)}
+          placeholder="Tags (optional, comma-separated): dragon, castle, fantasy"
+          disabled={buttonState === 'loading'}
+          className="tag-input"
+        />
+      </div>
       <ReactiveButton
         buttonState={buttonState}
         idleText="Generate"

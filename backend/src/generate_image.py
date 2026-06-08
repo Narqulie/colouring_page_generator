@@ -3,27 +3,22 @@ from datetime import datetime
 from io import BytesIO
 from dotenv import load_dotenv
 from loguru import logger
-from .helpers import save_metadata, load_metadata
+from .storage import create_storage
 import requests
 from PIL import Image
 import replicate
-from typing import Optional
+from typing import Optional, List
 from pathlib import Path
 import time
 
-# Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent
 LOG_DIR = PROJECT_ROOT / "logs"
-IMAGES_DIR = PROJECT_ROOT / "images"
-METADATA_FILE = PROJECT_ROOT / "image_metadata.json"
-
-# Ensure directories exist
 LOG_DIR.mkdir(exist_ok=True)
-IMAGES_DIR.mkdir(exist_ok=True)
+
+storage = create_storage()
 
 
 def setup_replicate() -> Optional[bool]:
-    """Initialize Replicate with API token from environment"""
     logger.info("Setting up Replicate API...")
     try:
         load_dotenv()
@@ -31,9 +26,7 @@ def setup_replicate() -> Optional[bool]:
         if not api_token:
             logger.error("REPLICATE_API_TOKEN environment variable is not set")
             return None
-
         os.environ["REPLICATE_API_TOKEN"] = api_token
-
         try:
             replicate.models.get("pnickolas1/sdxl-coloringbook")
             logger.info("Replicate API token validated")
@@ -41,30 +34,17 @@ def setup_replicate() -> Optional[bool]:
         except Exception as e:
             logger.error(f"Failed to validate Replicate API token: {e}")
             return None
-
     except Exception as e:
         logger.error(f"Error setting up Replicate: {e}")
         return None
 
 
 def generate_replicate_image(prompt: str) -> Optional[str]:
-    """
-    Generate image using Replicate's SDXL coloring-book model.
-
-    Args:
-        prompt: The user's prompt describing what to draw
-
-    Returns:
-        The URL of the generated image, or None if generation failed
-    """
     logger.info(f"Generating image with prompt: {prompt}")
-
     prompt_text = f"""{prompt}
 
 Black and white coloring page, in the style of TOK, clean outlines, no shading, no colors, white background"""
-
     negative_prompt = "shading, colors, grey, gray, photograph, realistic shading, gradients, halftone, dithering, noise, texture"
-
     try:
         logger.debug("Calling Replicate API...")
         output = replicate.run(
@@ -83,16 +63,13 @@ Black and white coloring page, in the style of TOK, clean outlines, no shading, 
             },
         )
         logger.debug(f"Raw Replicate API response: {output}")
-
         if not output or not isinstance(output, list) or len(output) == 0:
             logger.error("Empty response from Replicate")
             return None
-
         url = str(output[0]).strip()
         if not url.startswith("http"):
             logger.error(f"Invalid URL format: {url}")
             return None
-
         try:
             response = requests.head(url, timeout=5)
             if response.status_code != 200:
@@ -101,90 +78,61 @@ Black and white coloring page, in the style of TOK, clean outlines, no shading, 
         except Exception as e:
             logger.error(f"URL validation failed: {e}")
             return None
-
         logger.info(f"Valid image URL received from Replicate: {url}")
         return url
-
     except Exception as e:
         logger.exception(f"Failed to generate Replicate image: {e}")
         return None
 
 
-def download_and_process_image(image_url: str):
-    """Download and process image from URL"""
+def download_image(image_url: str) -> Optional[bytes]:
     logger.info(f"Downloading image from URL: {image_url}")
     try:
         response = requests.get(image_url)
         if response.status_code != 200:
-            logger.error(
-                f"Failed to download image. Status code: {response.status_code}"
-            )
+            logger.error(f"Failed to download image. Status code: {response.status_code}")
             return None
-
-        logger.debug("Processing downloaded image...")
-        img = Image.open(BytesIO(response.content))
-        logger.info("Image successfully downloaded and processed")
-        return img
+        return response.content
     except Exception as e:
-        logger.exception(f"Error downloading/processing image: {e}")
+        logger.exception(f"Error downloading image: {e}")
         return None
 
 
 def create_colouring_page(
     prompt: str,
     original_prompt: str = None,
+    tags: Optional[List[str]] = None,
 ) -> Optional[str]:
-    """
-    Create a colouring page from a prompt.
-
-    Args:
-        prompt: The prompt to generate the image from
-        original_prompt: The original prompt for filename creation (default: None)
-
-    Returns:
-        The filename of the created image, or None if creation failed
-    """
     if not prompt:
         logger.error("No prompt provided")
         return None
-
     if original_prompt is None:
         original_prompt = prompt
-
     logger.info(f"Creating colouring page for prompt: {prompt}")
-
     if not setup_replicate():
         logger.error("Failed to initialize Replicate")
         return None
-
-    IMAGES_DIR.mkdir(exist_ok=True)
-
     safe_filename = "".join(
         c for c in original_prompt if c.isalnum() or c in (" ", "-", "_")
     ).rstrip()
     safe_filename = f"{safe_filename}_{int(time.time())}.png"
-
     image_url = generate_replicate_image(prompt)
     if not image_url:
         logger.error("Failed to generate image URL")
         return None
-
-    img = download_and_process_image(image_url)
-    if img is None:
-        logger.error("Failed to download and process image")
+    img_data = download_image(image_url)
+    if img_data is None:
+        logger.error("Failed to download image")
         return None
-
-    output_path = IMAGES_DIR / safe_filename
-    img.save(output_path, "PNG", quality=95)
-    logger.info(f"Saved image to {output_path}")
-
-    metadata = load_metadata(str(METADATA_FILE))
+    storage.save_image(safe_filename, img_data)
+    logger.info(f"Saved image to storage: {safe_filename}")
+    metadata = storage.load_metadata()
     metadata[safe_filename] = {
         "prompt": original_prompt,
         "created_at": datetime.now().isoformat(),
         "model_prompt": prompt,
+        "tags": tags or [],
     }
-    save_metadata(metadata, str(METADATA_FILE))
+    storage.save_metadata(metadata)
     logger.info(f"Updated metadata for {safe_filename}")
-
     return safe_filename
