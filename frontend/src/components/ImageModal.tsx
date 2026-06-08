@@ -100,8 +100,6 @@ export function ImageModal({
                   flex: 1;
                   min-height: 0;
                   display: flex;
-                  align-items: center;
-                  justify-content: center;
                 }
 
                 img {
@@ -109,6 +107,7 @@ export function ImageModal({
                   max-height: 100%;
                   object-fit: contain;
                   display: block;
+                  margin: auto;
                 }
 
                 .watermark {
