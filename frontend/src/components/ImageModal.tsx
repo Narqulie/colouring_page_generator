@@ -72,14 +72,15 @@ export function ImageModal({
             <style>
               @media print {
                 @page {
-                  size: auto;
-                  margin: 1cm;
+                  size: A4 portrait;
+                  margin: 1.5cm;
                 }
 
                 html, body {
                   margin: 0;
                   padding: 0;
-                  height: 100%;
+                  width: 100%;
+                  min-height: 100vh;
                 }
 
                 body {
@@ -91,25 +92,25 @@ export function ImageModal({
 
                 .print-container {
                   width: 100%;
-                  height: 100%;
                   display: flex;
                   flex-direction: column;
                   align-items: center;
                   justify-content: center;
                   page-break-inside: avoid;
+                  page-break-after: avoid;
                 }
 
                 img {
                   max-width: 100%;
-                  max-height: calc(100vh - 4cm);
+                  max-height: calc(100vh - 3cm);
                   object-fit: contain;
-                  margin: auto;
+                  display: block;
                 }
 
                 .watermark {
-                  margin-top: 0.5cm;
+                  margin-top: 0.3cm;
                   font-family: Arial, sans-serif;
-                  font-size: 10pt;
+                  font-size: 9pt;
                   color: #666;
                   text-align: center;
                 }

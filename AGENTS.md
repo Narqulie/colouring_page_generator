@@ -44,7 +44,7 @@ npm run dev
 
 **No tests, no Python lint/typecheck** — none exist anywhere in the repo.
 
-**Versioning**: Backend `src/version.py` reads `build_info.json` (written at Docker build with `--build-arg GIT_HASH=$SOURCE_VERSION`) and appends the short SHA. Locally outputs `1.5.1`, deployed outputs `1.5.1-abc1234`. Frontend footer gets `VITE_GIT_HASH` injected at build time and displays commit alongside API version from `/health` endpoint.
+**Versioning**: Backend `src/version.py` reads `build_info.json` (written at Docker build time) and checks `RENDER_GIT_COMMIT` env var (Render runtime). Appends short SHA. Locally outputs `1.5.1`, deployed outputs `1.5.1-abc1234`. Frontend footer displays version alongside API version from `/health` endpoint.
 
 ## Architecture
 
