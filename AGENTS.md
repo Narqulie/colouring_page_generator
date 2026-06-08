@@ -44,7 +44,7 @@ npm run dev
 
 **No tests, no Python lint/typecheck** — none exist anywhere in the repo.
 
-**Versioning**: Backend `src/version.py` reads `build_info.json` (written at Docker build time) and checks `RENDER_GIT_COMMIT` env var (Render runtime). Appends short SHA. Locally outputs `1.5.1`, deployed outputs `1.5.1-abc1234`. Frontend footer displays version alongside API version from `/health` endpoint.
+**Versioning**: Backend `src/version.py` reads `build_info.json` (written at Docker build time) and checks `RENDER_GIT_COMMIT` env var (Render runtime). Appends short SHA. Locally outputs `1.5.1`, deployed outputs `1.5.1-abc1234`. Frontend displays dynamic version (with git SHA from `VITE_GIT_HASH` env var) and API version from `/api/status` endpoint.
 
 ## Architecture
 
@@ -69,7 +69,7 @@ npm run dev
 │   │   ├── hooks/           # useHealthCheck
 │   │   ├── components/      # promptForm, imageGallery, ImageModal, etc.
 │   │   └── translations.ts  # English UI strings
-│   └── vite.config.ts       # Proxy /api and /health → localhost:8000
+│   └── vite.config.ts       # Proxy /api → localhost:8000
 ├── Dockerfile               # Multi-stage, CMD: uvicorn port 10000
 ├── nginx.conf               # Reverse proxy (not used in Dockerfile)
 └── render.yaml               # Render Docker deployment config
