@@ -89,7 +89,7 @@ Black and white coloring page, in the style of TOK, clean outlines, no shading, 
     try:
         logger.debug("Calling Replicate API...")
         output = replicate.run(
-            "pnickolas1/sdxl-coloringbook",
+            "pnickolas1/sdxl-coloringbook:d2b110483fdce03119b21786d823f10bb3f5a7c49a7429da784c5017df096d33",
             input={
                 "prompt": prompt_text,
                 "negative_prompt": negative_prompt,
