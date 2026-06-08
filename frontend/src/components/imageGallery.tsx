@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { ImageModal } from './ImageModal'
-import { translations } from '../translations'
 
 export interface ImageItem {
   id: string;
@@ -39,7 +38,7 @@ export const ImageGallery = ({
     <>
       <div className="gallery-container">
         {images.length === 0 ? (
-          <p className="no-images">{translations.noImages}</p>
+          <p className="no-images">No images generated yet. Try creating one!</p>
         ) : (
           <div className="image-grid">
             {sortedImages.map((image) => (

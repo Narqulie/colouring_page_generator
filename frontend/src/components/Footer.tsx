@@ -1,4 +1,3 @@
-import { translations } from '../translations'
 import packageJson from '../../package.json'
 
 interface FooterProps {
@@ -14,7 +13,7 @@ export const Footer = ({ apiVersion, apiStatus }: FooterProps) => {
     <div className="app-footer">
       <div className="footer-content">
         <div className="footer-section">
-          <p className="credits">{translations.copyright}</p>
+          <p className="credits">Colouring Page Generator</p>
           <p className="version">
             {versionParts.join(' | ')}
             <span
@@ -25,7 +24,7 @@ export const Footer = ({ apiVersion, apiStatus }: FooterProps) => {
         </div>
         <div className="footer-section">
           <p className="credits">
-            {translations.madeWith}{' '}
+            Made with ❤️ by{' '}
             <a href="https://github.com/Narqulie" className="credits-link">Narqulie</a>
           </p>
           <a
@@ -34,7 +33,7 @@ export const Footer = ({ apiVersion, apiStatus }: FooterProps) => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            {translations.supportProject}
+            Support the project
           </a>
         </div>
       </div>

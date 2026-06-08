@@ -47,40 +47,19 @@ def setup_replicate() -> Optional[bool]:
         return None
 
 
-def generate_replicate_image(
-    prompt: str, theme: str = "none"
-) -> Optional[str]:
+def generate_replicate_image(prompt: str) -> Optional[str]:
     """
     Generate image using Replicate's SDXL coloring-book model.
 
     Args:
         prompt: The user's prompt describing what to draw
-        theme: The art style theme to apply (default: "none")
 
     Returns:
         The URL of the generated image, or None if generation failed
     """
-    logger.info(f"Generating image with prompt: {prompt}, theme: {theme}")
-
-    # Art style definitions
-    art_style_prompts = {
-        "cartoon": "Playful, exaggerated features with rounded, expressive lines.",
-        "cute": "Chubby simplified shapes with soft curves and large expressive eyes.",
-        "realistic": "More accurate proportions with fine detail in the outlines.",
-        "whimsical": "Flowing imaginative lines with decorative swirls and fantasy elements.",
-        "doodle": "Fun sketchy style with engaging patterns and mini-details.",
-        "geometric": "Sharp, clean geometric shapes with emphasis on symmetry.",
-        "mandala-inspired": "Repetitive decorative patterns with radial symmetry.",
-        "storybook": "Classic fairytale illustration style with charming linework.",
-        "minimalist": "Clean and airy with minimal details and spacious composition.",
-        "comic": "Bold dynamic lines and expressive comic book style.",
-    }
-
-    style_prompt = art_style_prompts.get(theme.lower(), "")
+    logger.info(f"Generating image with prompt: {prompt}")
 
     prompt_text = f"""{prompt}
-
-{style_prompt}
 
 Black and white coloring page, in the style of TOK, clean outlines, no shading, no colors, white background"""
 
@@ -153,7 +132,6 @@ def download_and_process_image(image_url: str):
 
 def create_colouring_page(
     prompt: str,
-    theme: str = "none",
     original_prompt: str = None,
 ) -> Optional[str]:
     """
@@ -161,7 +139,6 @@ def create_colouring_page(
 
     Args:
         prompt: The prompt to generate the image from
-        theme: The theme of the image (default: "none")
         original_prompt: The original prompt for filename creation (default: None)
 
     Returns:
@@ -174,7 +151,7 @@ def create_colouring_page(
     if original_prompt is None:
         original_prompt = prompt
 
-    logger.info(f"Creating colouring page for prompt: {prompt}, theme: {theme}")
+    logger.info(f"Creating colouring page for prompt: {prompt}")
 
     if not setup_replicate():
         logger.error("Failed to initialize Replicate")
@@ -187,7 +164,7 @@ def create_colouring_page(
     ).rstrip()
     safe_filename = f"{safe_filename}_{int(time.time())}.png"
 
-    image_url = generate_replicate_image(prompt, theme)
+    image_url = generate_replicate_image(prompt)
     if not image_url:
         logger.error("Failed to generate image URL")
         return None
@@ -204,7 +181,6 @@ def create_colouring_page(
     metadata = load_metadata(str(METADATA_FILE))
     metadata[safe_filename] = {
         "prompt": original_prompt,
-        "theme": theme,
         "created_at": datetime.now().isoformat(),
         "model_prompt": prompt,
     }

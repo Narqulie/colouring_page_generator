@@ -3,7 +3,6 @@ import { PromptForm } from './components/promptForm'
 import { ImageGallery } from './components/imageGallery'
 import { Footer } from './components/Footer'
 import './App.css'
-import { translations } from './translations'
 import { useTimeBasedGradient } from './components/TimeBasedGradient'
 import { useHealthCheck } from './hooks/useHealthCheck'
 
@@ -37,14 +36,14 @@ export default function App() {
       const data = await response.json();
       setImages(data.images || []);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : translations.errorLoad;
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load images from gallery';
       setError(errorMessage);
       console.error('Error fetching images:', err);
       setImages([]);
     }
   }
 
-  const handlePromptSubmit = async (prompt: string, theme: string) => {
+  const handlePromptSubmit = async (prompt: string) => {
     setIsLoading(true);
     setError(null);
 
@@ -52,7 +51,6 @@ export default function App() {
       const API_URL = import.meta.env.VITE_API_URL || '/api';
       const formData = new FormData();
       formData.append('prompt', prompt);
-      formData.append('theme', theme);
 
       const response = await fetch(`${API_URL}/generate`, {
         method: 'POST',
@@ -70,7 +68,7 @@ export default function App() {
       setPrompt('');
 
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : translations.errorGenerate;
+      const errorMessage = err instanceof Error ? err.message : 'Failed to generate image';
       setError(errorMessage);
       console.error('Error generating image:', err);
 
@@ -89,13 +87,13 @@ export default function App() {
       })
 
       if (!response.ok) {
-        throw new Error(translations.errorDelete)
+        throw new Error('Failed to delete image')
       }
 
       await fetchImages()
 
     } catch (err) {
-      setError(translations.errorDelete)
+      setError('Failed to delete image')
       console.error('Error deleting image:', err)
       throw err
     }
@@ -107,7 +105,7 @@ export default function App() {
 
   return (
     <div className="app" style={{ background: gradientStyle }}>
-      <h1 className="page-header">{translations.title}</h1>
+      <h1 className="page-header">Colouring Page Generator</h1>
 
       <PromptForm
         onSubmit={handlePromptSubmit}

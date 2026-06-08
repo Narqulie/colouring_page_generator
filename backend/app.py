@@ -104,14 +104,11 @@ async def get_images():
 
 
 @app.post("/api/generate")
-async def generate_image(
-    prompt: str = Form(...),
-    theme: str = Form("none"),
-):
+async def generate_image(prompt: str = Form(...)):
     """Generate a new coloring page"""
-    logger.info(f"Generating new image: {prompt}, theme: {theme}")
+    logger.info(f"Generating new image: {prompt}")
     try:
-        image_path = create_colouring_page(prompt, theme)
+        image_path = create_colouring_page(prompt)
         if not image_path:
             raise HTTPException(status_code=500, detail="Failed to generate image")
 
@@ -121,7 +118,6 @@ async def generate_image(
         metadata = load_metadata(str(METADATA_FILE))
         metadata[image_path] = {
             "prompt": prompt,
-            "theme": theme,
             "created_at": str(datetime.now().isoformat()),
         }
         save_metadata(metadata, str(METADATA_FILE))

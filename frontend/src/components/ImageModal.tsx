@@ -1,5 +1,4 @@
 import { ImageItem } from './imageGallery'
-import { translations } from '../translations'
 
 interface ImageModalProps {
   image: ImageItem | null
@@ -160,7 +159,7 @@ export function ImageModal({
   const handleDelete = async () => {
     if (!image || !onDelete) return
 
-    if (window.confirm(translations.confirmDelete)) {
+    if (window.confirm('Are you sure you want to delete this image?')) {
       try {
         await onDelete(image)
         onClose()
@@ -208,14 +207,14 @@ export function ImageModal({
           <p className="modal-prompt">{image.prompt}</p>
           <div className="modal-actions">
             <button className="modal-button" onClick={handleSave} type="button">
-              {translations.saveImage}
+              Save Image
             </button>
             <button
               className="modal-button"
               onClick={handlePrint}
               type="button"
             >
-              {translations.print}
+              Print
             </button>
             {onReroll && (
               <button
@@ -223,7 +222,7 @@ export function ImageModal({
                 onClick={handleReroll}
                 type="button"
               >
-                {translations.reroll}
+                Regenerate
               </button>
             )}
             {onDelete && (
@@ -232,7 +231,7 @@ export function ImageModal({
                 onClick={handleDelete}
                 type="button"
               >
-                {translations.delete}
+                Delete
               </button>
             )}
           </div>
