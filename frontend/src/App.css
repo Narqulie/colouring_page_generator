@@ -102,42 +102,57 @@ body {
 }
 
 /* ======================
-   3. TYPOGRAPHY & TEXT ELEMENTS
-   ====================== */
-.page-header {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #efefef;
-  margin: 1rem 0 2rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.349);
+    3. HERO & TYPOGRAPHY
+    ====================== */
+.hero {
+  padding: 3rem 1rem 2rem;
   position: relative;
-  display: inline-block;
 }
 
-.page-header::after {
+.hero::after {
   content: '';
   position: absolute;
-  bottom: -15px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  height: 10px;
-  background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
-  border-radius: 12px;
+  bottom: 0;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+}
+
+.page-header {
+  font-size: 3.25rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 0.5rem;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.hero-subtitle {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0 0 2rem;
+  font-weight: 400;
 }
 
 /* ======================
-   4. FORM ELEMENTS
-   ====================== */
+    4. FORM ELEMENTS
+    ====================== */
 /* Form Container */
 .prompt-form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  max-width: 500px;
-  margin: 2rem auto;
+  gap: 0.75rem;
+  max-width: 640px;
+  margin: 0 auto;
   width: 100%;
-  flex-shrink: 0; /* Prevent shrinking */
+  flex-shrink: 0;
 }
 
 /* Form Groups */
@@ -147,40 +162,63 @@ body {
 
 /* Input Fields */
 .prompt-form input {
-  padding: 0.5rem;
-  font-size: 1rem;
-  background-color: #ffffffa5;
-  border: 2px solid #ffffff;
-  border-radius: 12px;
-  color: black;
+  padding: 1rem 1.25rem;
+  font-size: 1.15rem;
+  background-color: rgba(255, 255, 255, 0.92);
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 14px;
+  color: #1a1a1a;
   width: 100%;
   box-sizing: border-box;
-  min-height: 2.5rem;
+  min-height: 3.25rem;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.prompt-form input::placeholder {
+  color: #999;
+}
+
+.prompt-form input:focus {
+  outline: none;
+  border-color: #ffffff;
+  background-color: #ffffff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
 }
 
 /* Buttons */
 .prompt-form .reactive-btn {
   font-family: inherit;
-  font-size: 1rem;
-  background: linear-gradient(90deg, var(--gradient-morning-start), var(--gradient-morning-end));
-  opacity: 0.8;
-  color: rgb(0, 0, 0) !important;
+  font-size: 1.05rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+  color: #1a1a1a !important;
   border: none;
-  border-radius: 12px;
+  border-radius: 14px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
   width: 100%;
-  padding: 0.5rem 1rem;
+  padding: 0.9rem 1.5rem;
+  letter-spacing: 0.01em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .prompt-form .reactive-btn:hover:not(:disabled) {
-  opacity: 1;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.14);
+  background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+}
+
+.prompt-form .reactive-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .prompt-form .reactive-btn:disabled {
-  background: #cccccc !important;
+  background: rgba(255, 255, 255, 0.3) !important;
+  color: rgba(0, 0, 0, 0.3) !important;
   cursor: not-allowed;
-  opacity: 0.33;
+  box-shadow: none;
 }
 
 .prompt-form .reactive-btn-wrapper {

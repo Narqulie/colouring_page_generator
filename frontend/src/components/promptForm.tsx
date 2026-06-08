@@ -51,10 +51,6 @@ export const PromptForm = ({ onSubmit, prompt, setPrompt }: PromptFormProps) => 
         className="reactive-btn"
         type="submit"
         disabled={buttonState === 'loading' || !prompt.trim()}
-        style={{
-          width: '100%',
-          padding: '0.5rem 1rem',
-        }}
       />
     </form>
   )

@@ -3,8 +3,7 @@ import sys
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from loguru import logger
 from src.generate_image import create_colouring_page
 from src.gallery import get_image_filenames
@@ -198,23 +197,6 @@ async def serve_spa(full_path: str, request: Request):
         raise HTTPException(status_code=500, detail="Frontend build not found")
 
     return FileResponse(str(index_path))
-
-
-# Add logging to the static files mount
-class LoggingStaticFiles(StaticFiles):
-    async def get_response(self, path: str, scope):
-        logger.info(f"Static file requested: {path}")
-        try:
-            response = await super().get_response(path, scope)
-            logger.info(f"Static file served successfully: {path}")
-            return response
-        except Exception as e:
-            logger.error(f"Error serving static file {path}: {str(e)}")
-            raise
-
-
-# Finally, mount static files LAST with logging
-app.mount("/", LoggingStaticFiles(directory=str(STATIC_DIR), html=True), name="static")
 
 
 # Add startup event handler

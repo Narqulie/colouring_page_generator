@@ -1,10 +1,11 @@
 # Frontend build stage
 FROM node:20-slim AS frontend-builder
+ARG GIT_HASH=unknown
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm ci
 COPY frontend/ .
-RUN npm run build
+RUN VITE_GIT_HASH=${GIT_HASH} npm run build
 
 # Backend stage
 FROM python:3.11-slim

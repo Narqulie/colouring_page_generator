@@ -105,13 +105,16 @@ export default function App() {
 
   return (
     <div className="app" style={{ background: gradientStyle }}>
-      <h1 className="page-header">Colouring Page Generator</h1>
+      <div className="hero">
+        <h1 className="page-header">Colouring Page Generator</h1>
+        <p className="hero-subtitle">Turn your ideas into printable colouring pages</p>
 
-      <PromptForm
-        onSubmit={handlePromptSubmit}
-        prompt={prompt}
-        setPrompt={setPrompt}
-      />
+        <PromptForm
+          onSubmit={handlePromptSubmit}
+          prompt={prompt}
+          setPrompt={setPrompt}
+        />
+      </div>
 
       {error && <div className="error-message">{error}</div>}
 

@@ -6,7 +6,11 @@ interface FooterProps {
 }
 
 export const Footer = ({ apiVersion, apiStatus }: FooterProps) => {
-  const versionParts = [`v${packageJson.version}`]
+  const gitHash = import.meta.env.VITE_GIT_HASH as string | undefined
+  const frontendVersion = gitHash && gitHash !== 'unknown'
+    ? `v${packageJson.version}-${gitHash.slice(0, 7)}`
+    : `v${packageJson.version}`
+  const versionParts = [frontendVersion]
   if (apiVersion) versionParts.push(`API v${apiVersion}`)
 
   return (
