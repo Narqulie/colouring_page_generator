@@ -1,15 +1,6 @@
 import { useState } from 'react'
 import { ImageModal } from './ImageModal'
-
-// Add translations
-const translations = {
-  en: {
-    noImages: "No images generated yet. Try creating one by entering a prompt above!",
-  },
-  fi: {
-    noImages: "Ei vielä luotuja kuvia. Kokeile luoda yksi kirjoittamalla kuvaus ylös!",
-  }
-} as const;
+import { translations } from '../translations'
 
 export interface ImageItem {
   id: string;
@@ -25,14 +16,12 @@ interface ImageGalleryProps {
   onDelete?: (image: ImageItem) => Promise<void>;
   onReroll?: (prompt: string) => void;
   isLoading?: boolean;
-  language?: 'en' | 'fi';  // Add language prop
 }
 
-export const ImageGallery = ({ 
-  images, 
-  onDelete, 
-  onReroll, 
-  language = 'en' // Default to English
+export const ImageGallery = ({
+  images,
+  onDelete,
+  onReroll,
 }: ImageGalleryProps) => {
   const [selectedImage, setSelectedImage] = useState<ImageItem | null>(null)
 
@@ -50,7 +39,7 @@ export const ImageGallery = ({
     <>
       <div className="gallery-container">
         {images.length === 0 ? (
-          <p className="no-images">{translations[language].noImages}</p>
+          <p className="no-images">{translations.noImages}</p>
         ) : (
           <div className="image-grid">
             {sortedImages.map((image) => (
@@ -61,14 +50,11 @@ export const ImageGallery = ({
                 }`}
                 onClick={() => handleImageClick(image)}
               >
-                <picture>
-                  <source srcSet={image.url} type="image/webp" />
-                  <img 
-                    src={image.url} 
-                    alt={image.prompt} 
-                    loading="lazy"
-                  />
-                </picture>
+                <img
+                  src={image.url}
+                  alt={image.prompt}
+                  loading="lazy"
+                />
                 <div className="image-details">
                   <p className="image-prompt">{image.prompt}</p>
                   {image.timestamp && <p className="image-timestamp">{image.timestamp}</p>}
@@ -78,12 +64,11 @@ export const ImageGallery = ({
           </div>
         )}
       </div>
-      <ImageModal 
-        image={selectedImage} 
+      <ImageModal
+        image={selectedImage}
         onClose={() => setSelectedImage(null)}
         onDelete={onDelete}
         onReroll={onReroll}
-        language={language}  // Pass language to modal
       />
     </>
   )

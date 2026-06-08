@@ -2,10 +2,9 @@ services:
   - type: web
     name: colouring-page-generator
     env: docker
-    buildCommand: docker build -t app .
-    startCommand: docker run -p $PORT:$PORT -e PORT=$PORT app
+    buildCommand: docker build -t app --build-arg GIT_HASH=$SOURCE_VERSION .
     envVars:
       - key: ENVIRONMENT
         value: production
       - key: REPLICATE_API_TOKEN
-        sync: false 
+        sync: false

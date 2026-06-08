@@ -1,37 +1,45 @@
-import { version } from '../../package.json'
+import { translations } from '../translations'
+import packageJson from '../../package.json'
 
-export const Footer = () => {
+interface FooterProps {
+  apiVersion?: string
+  apiStatus: 'healthy' | 'unhealthy' | 'unknown'
+  gitHash?: string
+}
+
+export const Footer = ({ apiVersion, apiStatus, gitHash }: FooterProps) => {
+  const versionParts = [`v${packageJson.version}`]
+  if (apiVersion) versionParts.push(`API v${apiVersion}`)
+  if (gitHash) versionParts.push(gitHash)
+
   return (
-    <footer className="app-footer">
+    <div className="app-footer">
       <div className="footer-content">
         <div className="footer-section">
-          <p className="version">Version {version}</p>
-        </div>
-
-        <div className="footer-section">
-          <p className="credits">
-            Created with ♥ by{' '}
-            <a
-              href="https://github.com/narqulie"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Narqulie
-            </a>
+          <p className="credits">{translations.copyright}</p>
+          <p className="version">
+            {versionParts.join(' | ')}
+            <span
+              className={`api-status ${apiStatus === 'healthy' ? '' : 'error'}`}
+              title={apiStatus === 'healthy' ? 'API Connected' : 'API Unavailable'}
+            >●</span>
           </p>
         </div>
-
         <div className="footer-section">
+          <p className="credits">
+            {translations.madeWith}{' '}
+            <a href="https://github.com/Narqulie" className="credits-link">Narqulie</a>
+          </p>
           <a
-            href="https://www.paypal.me/jheaminoff"
+            href="https://paypal.me/jheaminoff"
+            className="support-link"
             target="_blank"
             rel="noopener noreferrer"
-            className="support-link"
           >
-            <span>Buy me a coffee</span>
+            {translations.supportProject}
           </a>
         </div>
       </div>
-    </footer>
+    </div>
   )
 }

@@ -1,14 +1,6 @@
-from datetime import datetime
 from loguru import logger
 from typing import Dict, Any
 import json
-from pathlib import Path
-now = datetime.now()
-
-
-def log_generated_images(file, prompt):
-    imagestr = f"{now},{file},{prompt}\n"
-    logger.info(f"Logging generated image: {imagestr}")
 
 
 def save_metadata(metadata: Dict[str, Any], metadata_file: str) -> None:
