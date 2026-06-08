@@ -71,7 +71,7 @@ app.add_middleware(
 )
 
 
-@app.get("/health")
+@app.get("/api/status")
 async def health_check():
     """Health check endpoint for monitoring"""
     logger.info("Health check accessed")

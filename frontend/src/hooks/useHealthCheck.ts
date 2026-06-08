@@ -12,7 +12,7 @@ export const useHealthCheck = () => {
 
   const checkHealth = async () => {
     try {
-      const response = await fetch('/health');
+      const response = await fetch('/api/status');
       if (!response.ok) {
         throw new Error(`Health check failed: ${response.status}`);
       }
