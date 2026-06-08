@@ -72,43 +72,48 @@ export function ImageModal({
             <style>
               @media print {
                 @page {
-                  size: A4 portrait;
-                  margin: 1.5cm;
+                  margin: 1cm;
                 }
 
                 html, body {
                   margin: 0;
                   padding: 0;
                   width: 100%;
-                  min-height: 100vh;
+                  height: 100%;
                 }
 
                 body {
                   display: flex;
-                  flex-direction: column;
                   align-items: center;
                   justify-content: center;
                 }
 
                 .print-container {
                   width: 100%;
+                  height: 100%;
                   display: flex;
                   flex-direction: column;
+                  page-break-inside: avoid;
+                }
+
+                .image-wrapper {
+                  flex: 1;
+                  min-height: 0;
+                  display: flex;
                   align-items: center;
                   justify-content: center;
-                  page-break-inside: avoid;
-                  page-break-after: avoid;
                 }
 
                 img {
                   max-width: 100%;
-                  max-height: calc(100vh - 3cm);
+                  max-height: 100%;
                   object-fit: contain;
                   display: block;
                 }
 
                 .watermark {
-                  margin-top: 0.3cm;
+                  flex-shrink: 0;
+                  padding-top: 0.4cm;
                   font-family: Arial, sans-serif;
                   font-size: 9pt;
                   color: #666;
@@ -119,16 +124,18 @@ export function ImageModal({
           </head>
           <body>
             <div class="print-container">
-              <img
-                src="${fullUrl}"
-                alt="${image.prompt}"
-                onerror="console.error('Failed to load image for printing'); window.close();"
-                onload="setTimeout(() => {
-                  console.log('Image loaded, initiating print...');
-                  window.print();
-                  setTimeout(() => window.close(), 1000);
-                }, 1000);"
-              />
+              <div class="image-wrapper">
+                <img
+                  src="${fullUrl}"
+                  alt="${image.prompt}"
+                  onerror="console.error('Failed to load image for printing'); window.close();"
+                  onload="setTimeout(() => {
+                    console.log('Image loaded, initiating print...');
+                    window.print();
+                    setTimeout(() => window.close(), 1000);
+                  }, 1000);"
+                />
+              </div>
               <div class="watermark">
                 ${image.prompt}
                 <br>
