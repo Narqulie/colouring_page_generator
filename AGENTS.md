@@ -26,7 +26,7 @@ npm run dev
 
 - **Python 3.11+**, **Node.js 20+**
 - **`REPLICATE_API_TOKEN`** in `backend/.env` — copy from `backend/.env.example`
-- Backend stores images in `backend/images/` and metadata in `backend/image_metadata.json` (no database)
+- **R2 storage** (optional): set `R2_BUCKET`, `R2_ACCESS_KEY`, `R2_SECRET_KEY`, `R2_ENDPOINT` env vars to persist images across redeploys. Falls back to local filesystem when unset.
 
 ## Commands
 
@@ -53,23 +53,22 @@ npm run dev
 ├── backend/
 │   ├── app.py               # FastAPI entrypoint (module: app:app)
 │   ├── src/
+│   │   ├── storage.py        # Storage abstraction (R2 / local filesystem)
 │   │   ├── generate_image.py # Replicate API calls (sdxl-coloringbook LoRA)
-│   │   ├── gallery.py        # List/serve images
-│   │   ├── helpers.py        # JSON metadata read/write
+│   │   ├── gallery.py        # List/filter images by text and tags
+│   │   ├── helpers.py        # Thin wrapper around storage for metadata
 │   │   └── version.py        # __version__ = "1.5.1"
-│   ├── images/              # Generated PNGs (git ignored, keep .gitkeep)
+│   ├── images/              # Generated PNGs (local fallback only)
 │   ├── static/              # Frontend build copied here by `build:prod`
 │   ├── logs/                # Loguru debug.log (git ignored)
 │   └── .env                 # REPLICATE_API_TOKEN required
 ├── frontend/
 │   ├── src/
 │   │   ├── main.tsx         # React entrypoint
-│   │   ├── App.tsx          # Root component
-│   │   ├── api/index.ts     # API client (fetch)
+│   │   ├── App.tsx          # Root component (search, tags, gallery state)
 │   │   ├── hooks/           # useHealthCheck
-│   │   ├── components/      # promptForm, imageGallery, ImageModal, etc.
-│   │   └── translations.ts  # English UI strings
-│   └── vite.config.ts       # Proxy /api → localhost:8000
+│   │   ├── components/      # promptForm, imageGallery, ImageModal, SearchBar
+│   ├── vite.config.ts       # Proxy /api → localhost:8000
 ├── Dockerfile               # Multi-stage, CMD: uvicorn port 10000
 ├── nginx.conf               # Reverse proxy (not used in Dockerfile)
 └── render.yaml               # Render Docker deployment config
@@ -82,9 +81,10 @@ npm run dev
 - **No tests, no typecheck for Python** — only `tsc -b` for frontend
 - **Production port is 10000** (matching Dockerfile), dev port is 8000
 - **Vite proxy in dev** means `/api` requests go to FastAPI without CORS issues; in production FastAPI serves everything
-- **CORS** is wide-open (`["*"]`) in production, restricted to known origins in dev
-- **No auth** on any endpoint — all public
 - **CORS** is wide-open (`["*"]`) in production, restricted to known origins + Render subdomain regex in dev
 - **No auth** on any endpoint — all public
-- **Generated images are 3:4 portrait** (print-friendly) as PNG, stored in `backend/images/`
+- **Generated images are 3:4 portrait** (print-friendly) as PNG
 - **Frontend is English-only** — Finnish translation was removed
+- **R2 storage**: auto-detected from env vars. Without them, falls back to local disk (deployments lose images on redeploy). Set all four `R2_*` vars for persistence.
+- **Tags**: comma-separated on generation, editable in modal, filterable via search bar.
+- **Search**: `?q=` filters by prompt text, `?tag=` filters by exact tag on the `/api/images` endpoint.
