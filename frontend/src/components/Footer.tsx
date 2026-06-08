@@ -4,13 +4,11 @@ import packageJson from '../../package.json'
 interface FooterProps {
   apiVersion?: string
   apiStatus: 'healthy' | 'unhealthy' | 'unknown'
-  gitHash?: string
 }
 
-export const Footer = ({ apiVersion, apiStatus, gitHash }: FooterProps) => {
+export const Footer = ({ apiVersion, apiStatus }: FooterProps) => {
   const versionParts = [`v${packageJson.version}`]
   if (apiVersion) versionParts.push(`API v${apiVersion}`)
-  if (gitHash) versionParts.push(gitHash)
 
   return (
     <div className="app-footer">

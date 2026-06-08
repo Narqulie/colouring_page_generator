@@ -14,8 +14,6 @@ interface Image {
   prompt?: string
 }
 
-const gitHash = import.meta.env.VITE_GIT_HASH as string | undefined
-
 export default function App() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -147,7 +145,6 @@ export default function App() {
       <Footer
         apiVersion={health?.version}
         apiStatus={healthError ? 'unhealthy' : health ? 'healthy' : 'unknown'}
-        gitHash={gitHash ? `#${gitHash.slice(0, 7)}` : undefined}
       />
     </div>
   )
