@@ -61,3 +61,4 @@ backend/images/*
 backend/image_metadata.json
 frontend/dist/
 frontend/.env
+.wrangler/

@@ -69,13 +69,12 @@ export default function App() {
     }
   }
 
-  const handlePromptSubmit = async (prompt: string, tags: string[]) => {
+  const handlePromptSubmit = async (prompt: string) => {
     setIsLoading(true)
     setError(null)
     try {
       const formData = new FormData()
       formData.append('prompt', prompt)
-      if (tags.length > 0) formData.append('tags', tags.join(','))
 
       const response = await fetch(`${API_URL}/generate`, {
         method: 'POST',

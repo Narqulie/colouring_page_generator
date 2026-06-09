@@ -79,8 +79,15 @@ class R2Storage(Storage):
     def _image_key(self, filename: str) -> str:
         return f"images/{filename}"
 
+    def _r2_call(self, method, *args, **kwargs):
+        try:
+            return method(*args, **kwargs)
+        except Exception as e:
+            logger.error(f"R2 {method.__name__} error: {e}")
+            return None
+
     def save_image(self, key: str, data: bytes) -> None:
-        self.client.put_object(
+        self._r2_call(self.client.put_object,
             Bucket=self.bucket,
             Key=self._image_key(key),
             Body=data,
@@ -88,38 +95,33 @@ class R2Storage(Storage):
         )
 
     def get_image(self, key: str) -> Optional[bytes]:
-        try:
-            resp = self.client.get_object(
-                Bucket=self.bucket, Key=self._image_key(key)
-            )
-            return resp["Body"].read()
-        except self.client.exceptions.NoSuchKey:
+        resp = self._r2_call(self.client.get_object,
+            Bucket=self.bucket, Key=self._image_key(key)
+        )
+        if resp is None:
             return None
+        return resp["Body"].read()
 
     def delete_image(self, key: str) -> None:
-        try:
-            self.client.delete_object(
-                Bucket=self.bucket, Key=self._image_key(key)
-            )
-        except Exception:
-            pass
+        self._r2_call(self.client.delete_object,
+            Bucket=self.bucket, Key=self._image_key(key)
+        )
 
     def list_images(self) -> List[str]:
-        resp = self.client.list_objects_v2(
-            Bucket=self.bucket,
-            Prefix="images/",
+        resp = self._r2_call(self.client.list_objects_v2,
+            Bucket=self.bucket, Prefix="images/",
         )
-        keys = []
-        for obj in resp.get("Contents", []):
-            key = obj["Key"]
-            filename = key[len("images/"):]
-            if filename:
-                keys.append(filename)
-        return keys
+        if resp is None:
+            return []
+        return [
+            obj["Key"][len("images/"):]
+            for obj in resp.get("Contents", [])
+            if obj["Key"][len("images/"):]
+        ]
 
     def save_metadata(self, data: Dict[str, Any]) -> None:
         body = json.dumps(data, indent=2).encode()
-        self.client.put_object(
+        self._r2_call(self.client.put_object,
             Bucket=self.bucket,
             Key=METADATA_KEY,
             Body=body,
@@ -127,12 +129,15 @@ class R2Storage(Storage):
         )
 
     def load_metadata(self) -> Dict[str, Any]:
+        resp = self._r2_call(self.client.get_object,
+            Bucket=self.bucket, Key=METADATA_KEY
+        )
+        if resp is None:
+            return {}
         try:
-            resp = self.client.get_object(
-                Bucket=self.bucket, Key=METADATA_KEY
-            )
             return json.loads(resp["Body"].read())
-        except self.client.exceptions.NoSuchKey:
+        except Exception as e:
+            logger.error(f"R2 load_metadata parse error: {e}")
             return {}
 
 

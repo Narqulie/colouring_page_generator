@@ -98,10 +98,39 @@ def download_image(image_url: str) -> Optional[bytes]:
         return None
 
 
+STOP_WORDS = frozenset({
+    "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for",
+    "of", "with", "by", "from", "as", "is", "was", "are", "were", "be",
+    "been", "being", "have", "has", "had", "do", "does", "did", "will",
+    "would", "could", "should", "may", "might", "shall", "can", "need",
+    "this", "that", "these", "those", "its", "it", "all", "very", "just",
+    "some", "any", "each", "every", "both", "no", "not", "only", "too",
+    "so", "if", "then", "than", "also", "about", "into", "over", "after",
+    "before", "between", "under", "above", "below", "up", "down", "out",
+    "off", "well", "back", "still", "much", "many", "more", "most",
+    "such", "own", "same", "other", "another", "what", "which", "who",
+    "whom", "when", "where", "why", "how", "make", "made", "get", "got",
+    "like", "want", "draw", "coloring", "colouring", "page", "design",
+})
+
+
+def auto_tags(prompt: str, max_tags: int = 8) -> List[str]:
+    words = prompt.lower().split()
+    seen = set()
+    tags = []
+    for w in words:
+        clean = w.strip(",.!?;:'\"()[]-")
+        if len(clean) >= 4 and clean not in STOP_WORDS and clean not in seen:
+            seen.add(clean)
+            tags.append(clean)
+        if len(tags) >= max_tags:
+            break
+    return tags
+
+
 def create_colouring_page(
     prompt: str,
     original_prompt: str = None,
-    tags: Optional[List[str]] = None,
 ) -> Optional[str]:
     if not prompt:
         logger.error("No prompt provided")
@@ -131,7 +160,7 @@ def create_colouring_page(
         "prompt": original_prompt,
         "created_at": datetime.now().isoformat(),
         "model_prompt": prompt,
-        "tags": tags or [],
+        "tags": auto_tags(original_prompt),
     }
     storage.save_metadata(metadata)
     logger.info(f"Updated metadata for {safe_filename}")

@@ -62,9 +62,12 @@ app.add_middleware(
 )
 
 
+@app.get("/health")
+async def health_check_old():
+    return await health_check()
+
 @app.get("/api/status")
 async def health_check():
-    logger.info("Health check accessed")
     return {
         "status": "healthy",
         "version": __version__,
@@ -92,14 +95,10 @@ async def get_images(
 
 
 @app.post("/api/generate")
-async def generate_image(
-    prompt: str = Form(...),
-    tags: str = Form(default="", description="Comma-separated tags"),
-):
+async def generate_image(prompt: str = Form(...)):
     logger.info(f"Generating new image: {prompt}")
     try:
-        tag_list = [t.strip() for t in tags.split(",") if t.strip()] if tags else []
-        image_path = create_colouring_page(prompt, tags=tag_list)
+        image_path = create_colouring_page(prompt)
         if not image_path:
             raise HTTPException(status_code=500, detail="Failed to generate image")
         logger.info(f"Image generated successfully: {image_path}")
