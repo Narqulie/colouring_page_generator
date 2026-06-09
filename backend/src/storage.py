@@ -25,6 +25,8 @@ class Storage:
 
     def load_metadata(self) -> Dict[str, Any]: ...
 
+    def health_check(self) -> dict: ...
+
 
 class LocalStorage(Storage):
     def __init__(self):
@@ -62,6 +64,13 @@ class LocalStorage(Storage):
                 return json.load(f)
         except FileNotFoundError:
             return {}
+
+    def health_check(self) -> dict:
+        return {
+            "storage": "local",
+            "healthy": True,
+            "detail": None,
+        }
 
 
 class R2Storage(Storage):
@@ -139,6 +148,21 @@ class R2Storage(Storage):
         except Exception as e:
             logger.error(f"R2 load_metadata parse error: {e}")
             return {}
+
+    def health_check(self) -> dict:
+        try:
+            self.client.head_bucket(Bucket=self.bucket)
+            return {
+                "storage": "r2",
+                "healthy": True,
+                "detail": None,
+            }
+        except Exception as e:
+            return {
+                "storage": "r2",
+                "healthy": False,
+                "detail": str(e),
+            }
 
 
 def create_storage() -> Storage:

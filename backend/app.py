@@ -68,10 +68,13 @@ async def health_check_old():
 
 @app.get("/api/status")
 async def health_check():
+    storage_health = storage.health_check()
+    overall = "healthy" if storage_health["healthy"] else "degraded"
     return {
-        "status": "healthy",
+        "status": overall,
         "version": __version__,
         "timestamp": datetime.now().isoformat(),
+        "storage": storage_health,
     }
 
 
