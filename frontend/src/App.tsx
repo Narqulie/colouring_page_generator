@@ -23,7 +23,6 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTag, setActiveTag] = useState<string | null>(null)
   const [allTags, setAllTags] = useState<string[]>([])
-  const [generationStatus, setGenerationStatus] = useState<string | null>(null)
 
   const gradientStyle = useTimeBasedGradient()
   const { health, error: healthError } = useHealthCheck()
@@ -80,7 +79,6 @@ export default function App() {
   const handlePromptSubmit = async (prompt: string) => {
     setIsLoading(true)
     setError(null)
-    setGenerationStatus('Starting...')
 
     try {
       const formData = new FormData()
@@ -109,7 +107,6 @@ export default function App() {
       await fetchImages()
       await fetchTags()
       setPrompt('')
-      setGenerationStatus(null)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to generate image'
       setError(errorMessage)
@@ -147,10 +144,7 @@ export default function App() {
               reject(new Error(data.error || 'Generation failed'))
               break
             case 'starting':
-              setGenerationStatus('Starting...')
-              break
             case 'processing':
-              setGenerationStatus('Generating...')
               break
           }
         } catch (err) {
@@ -210,13 +204,6 @@ export default function App() {
           setPrompt={setPrompt}
         />
       </div>
-
-      {generationStatus && (
-        <div className="generation-progress">
-          <span className="generation-spinner" />
-          {generationStatus}
-        </div>
-      )}
 
       {error && <div className="error-message">{error}</div>}
 
