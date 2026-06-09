@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { PromptForm } from './components/promptForm'
 import { ImageGallery } from './components/imageGallery'
 import { Footer } from './components/Footer'
@@ -23,9 +23,11 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTag, setActiveTag] = useState<string | null>(null)
   const [allTags, setAllTags] = useState<string[]>([])
+  const [generationStatus, setGenerationStatus] = useState<string | null>(null)
 
   const gradientStyle = useTimeBasedGradient()
   const { health, error: healthError } = useHealthCheck()
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
     fetchImages()
@@ -33,6 +35,12 @@ export default function App() {
 
   useEffect(() => {
     fetchTags()
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current)
+    }
   }, [])
 
   const API_URL = import.meta.env.VITE_API_URL || '/api'
@@ -72,6 +80,8 @@ export default function App() {
   const handlePromptSubmit = async (prompt: string) => {
     setIsLoading(true)
     setError(null)
+    setGenerationStatus('Starting...')
+
     try {
       const formData = new FormData()
       formData.append('prompt', prompt)
@@ -85,12 +95,21 @@ export default function App() {
         if (response.status === 429) {
           throw new Error('Too many requests. Please wait a moment.')
         }
-        throw new Error(`Generation failed: ${response.status} ${response.statusText}`)
+        const detail = await response.json().catch(() => ({}))
+        throw new Error(detail.detail || `Generation failed: ${response.status}`)
+      }
+
+      const { prediction_id } = await response.json()
+
+      const status = await pollPrediction(prediction_id)
+      if (status === 'failed') {
+        throw new Error('Generation failed on Replicate')
       }
 
       await fetchImages()
       await fetchTags()
       setPrompt('')
+      setGenerationStatus(null)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to generate image'
       setError(errorMessage)
@@ -100,6 +119,49 @@ export default function App() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const pollPrediction = async (predictionId: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const poll = async () => {
+        try {
+          const res = await fetch(`${API_URL}/generate/${predictionId}`)
+          if (!res.ok) {
+            clearInterval(pollRef.current!)
+            reject(new Error('Failed to poll generation status'))
+            return
+          }
+          const data = await res.json()
+
+          switch (data.status) {
+            case 'completed':
+              clearInterval(pollRef.current!)
+              resolve('completed')
+              break
+            case 'succeeded':
+              clearInterval(pollRef.current!)
+              resolve('completed')
+              break
+            case 'failed':
+              clearInterval(pollRef.current!)
+              reject(new Error(data.error || 'Generation failed'))
+              break
+            case 'starting':
+              setGenerationStatus('Starting...')
+              break
+            case 'processing':
+              setGenerationStatus('Generating...')
+              break
+          }
+        } catch (err) {
+          clearInterval(pollRef.current!)
+          reject(err)
+        }
+      }
+
+      poll()
+      pollRef.current = setInterval(poll, 2000)
+    })
   }
 
   const handleDelete = async (image: Image) => {
@@ -149,8 +211,14 @@ export default function App() {
         />
       </div>
 
+      {generationStatus && (
+        <div className="generation-progress">
+          <span className="generation-spinner" />
+          {generationStatus}
+        </div>
+      )}
+
       {error && <div className="error-message">{error}</div>}
-      {healthError && <div className="error">Health Check Error: {healthError}</div>}
 
       <SearchBar
         searchQuery={searchQuery}

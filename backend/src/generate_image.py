@@ -1,21 +1,24 @@
 import os
+import uuid
 from datetime import datetime
-from io import BytesIO
 from dotenv import load_dotenv
 from loguru import logger
 from .storage import create_storage
 import requests
-from PIL import Image
 import replicate
-from typing import Optional, List
+from typing import Optional, List, Dict
 from pathlib import Path
 import time
+import threading
 
 PROJECT_ROOT = Path(__file__).parent.parent
 LOG_DIR = PROJECT_ROOT / "logs"
 LOG_DIR.mkdir(exist_ok=True)
 
 storage = create_storage()
+
+predictions: Dict[str, dict] = {}
+_predictions_lock = threading.Lock()
 
 
 def setup_replicate() -> Optional[bool]:
@@ -126,6 +129,114 @@ def auto_tags(prompt: str, max_tags: int = 8) -> List[str]:
         if len(tags) >= max_tags:
             break
     return tags
+
+
+def start_prediction(prompt: str) -> Optional[str]:
+    if not setup_replicate():
+        logger.error("Failed to initialize Replicate")
+        return None
+
+    prompt_text = f"""{prompt}
+
+Black and white coloring page, in the style of TOK, clean outlines, no shading, no colors, white background"""
+    negative_prompt = "shading, colors, grey, gray, photograph, realistic shading, gradients, halftone, dithering, noise, texture"
+
+    try:
+        prediction = replicate.predictions.create(
+            "pnickolas1/sdxl-coloringbook:d2b110483fdce03119b21786d823f10bb3f5a7c49a7429da784c5017df096d33",
+            input={
+                "prompt": prompt_text,
+                "negative_prompt": negative_prompt,
+                "width": 768,
+                "height": 1024,
+                "num_outputs": 1,
+                "scheduler": "K_EULER",
+                "num_inference_steps": 30,
+                "guidance_scale": 7.5,
+                "lora_scale": 0.6,
+                "apply_watermark": False,
+            },
+        )
+    except Exception as e:
+        logger.exception(f"Failed to start Replicate prediction: {e}")
+        return None
+
+    pred_id = uuid.uuid4().hex[:12]
+    entry = {
+        "replicate_id": prediction.id,
+        "status": prediction.status,
+        "prompt": prompt,
+        "original_prompt": prompt,
+        "output_url": None,
+        "filename": None,
+        "error": None,
+        "logs": prediction.logs or "",
+        "created_at": datetime.now().isoformat(),
+        "updated_at": datetime.now().isoformat(),
+    }
+
+    with _predictions_lock:
+        predictions[pred_id] = entry
+
+    logger.info(f"Started Replicate prediction {prediction.id} (local id: {pred_id})")
+    return pred_id
+
+
+def get_prediction(pred_id: str) -> Optional[dict]:
+    with _predictions_lock:
+        entry = predictions.get(pred_id)
+        if not entry:
+            return None
+
+    try:
+        prediction = replicate.predictions.get(entry["replicate_id"])
+    except Exception as e:
+        logger.error(f"Failed to poll Replicate prediction {entry['replicate_id']}: {e}")
+        with _predictions_lock:
+            entry["status"] = "failed"
+            entry["error"] = str(e)
+            entry["updated_at"] = datetime.now().isoformat()
+        return dict(entry)
+
+    with _predictions_lock:
+        entry["status"] = prediction.status
+        entry["logs"] = (prediction.logs or "")[-500:]
+        entry["updated_at"] = datetime.now().isoformat()
+
+        if prediction.status == "succeeded" and prediction.output:
+            url = str(prediction.output[0])
+            entry["output_url"] = url
+
+            safe_filename = "".join(
+                c for c in entry["original_prompt"] if c.isalnum() or c in (" ", "-", "_")
+            ).rstrip()
+            safe_filename = f"{safe_filename}_{int(time.time())}.png"
+
+            img_data = download_image(url)
+            if img_data:
+                storage.save_image(safe_filename, img_data)
+                logger.info(f"Saved image to storage: {safe_filename}")
+
+                metadata = storage.load_metadata()
+                metadata[safe_filename] = {
+                    "prompt": entry["original_prompt"],
+                    "created_at": entry["created_at"],
+                    "model_prompt": entry["prompt"],
+                    "tags": auto_tags(entry["original_prompt"]),
+                }
+                storage.save_metadata(metadata)
+                logger.info(f"Updated metadata for {safe_filename}")
+
+                entry["filename"] = safe_filename
+                entry["status"] = "completed"
+            else:
+                entry["status"] = "failed"
+                entry["error"] = "Failed to download image"
+
+        elif prediction.status == "failed":
+            entry["error"] = prediction.error or "Unknown error"
+
+    return dict(entry)
 
 
 def create_colouring_page(

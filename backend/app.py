@@ -5,7 +5,7 @@ from fastapi import FastAPI, HTTPException, Form, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from loguru import logger
-from src.generate_image import create_colouring_page
+from src.generate_image import create_colouring_page, start_prediction, get_prediction
 from src.gallery import get_image_filenames
 from src.helpers import save_metadata, load_metadata
 from src.storage import create_storage
@@ -99,16 +99,23 @@ async def get_images(
 
 @app.post("/api/generate")
 async def generate_image(prompt: str = Form(...)):
-    logger.info(f"Generating new image: {prompt}")
+    logger.info(f"Starting generation: {prompt}")
     try:
-        image_path = create_colouring_page(prompt)
-        if not image_path:
-            raise HTTPException(status_code=500, detail="Failed to generate image")
-        logger.info(f"Image generated successfully: {image_path}")
-        return {"image_path": image_path}
+        pred_id = start_prediction(prompt)
+        if not pred_id:
+            raise HTTPException(status_code=500, detail="Failed to start generation")
+        return {"prediction_id": pred_id}
     except Exception as e:
-        logger.error(f"Error generating image: {str(e)}")
+        logger.error(f"Error starting generation: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/generate/{prediction_id}")
+async def get_generation_status(prediction_id: str):
+    entry = get_prediction(prediction_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Prediction not found")
+    return entry
 
 
 @app.get("/api/images/{image_name}")
