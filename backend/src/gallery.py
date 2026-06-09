@@ -25,7 +25,7 @@ def get_image_filenames(
                 continue
         results.append({
             "filename": filename,
-            "url": f"images/{filename}",
+            "url": f"/images/{filename}",
             "prompt": entry.get("prompt", ""),
             "date": entry.get("created_at", ""),
             "tags": entry.get("tags", []),
