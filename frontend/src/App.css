@@ -204,6 +204,10 @@ body {
 }
 
 /* Buttons */
+.prompt-form .reactive-btn-wrapper {
+  width: 100%;
+}
+
 .prompt-form .reactive-btn {
   font-family: inherit;
   font-size: 1.05rem;
@@ -213,7 +217,7 @@ body {
   border: none;
   border-radius: 14px;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: box-shadow 0.25s ease, background 0.25s ease;
   width: 100%;
   padding: 0.9rem 1.5rem;
   letter-spacing: 0.01em;
@@ -221,14 +225,12 @@ body {
 }
 
 .prompt-form .reactive-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.14);
-  background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+  background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
 }
 
 .prompt-form .reactive-btn:active:not(:disabled) {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .prompt-form .reactive-btn:disabled {
@@ -236,10 +238,6 @@ body {
   color: rgba(0, 0, 0, 0.3) !important;
   cursor: not-allowed;
   box-shadow: none;
-}
-
-.prompt-form .reactive-btn-wrapper {
-  width: 100%;
 }
 
 /* ======================
