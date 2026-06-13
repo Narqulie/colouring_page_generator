@@ -31,7 +31,7 @@ def setup_replicate() -> Optional[bool]:
             return None
         os.environ["REPLICATE_API_TOKEN"] = api_token
         try:
-            replicate.models.get("pnickolas1/sdxl-coloringbook")
+            replicate.models.get("black-forest-labs/flux-schnell")
             logger.info("Replicate API token validated")
             return True
         except Exception as e:
@@ -47,22 +47,17 @@ def generate_replicate_image(prompt: str) -> Optional[str]:
     prompt_text = f"""{prompt}
 
 Black and white coloring page, in the style of TOK, clean outlines, no shading, no colors, white background"""
-    negative_prompt = "shading, colors, grey, gray, photograph, realistic shading, gradients, halftone, dithering, noise, texture"
     try:
         logger.debug("Calling Replicate API...")
         output = replicate.run(
-            "pnickolas1/sdxl-coloringbook:d2b110483fdce03119b21786d823f10bb3f5a7c49a7429da784c5017df096d33",
+            "black-forest-labs/flux-schnell",
             input={
                 "prompt": prompt_text,
-                "negative_prompt": negative_prompt,
-                "width": 768,
-                "height": 1024,
                 "num_outputs": 1,
-                "scheduler": "K_EULER",
-                "num_inference_steps": 30,
-                "guidance_scale": 7.5,
-                "lora_scale": 0.6,
-                "apply_watermark": False,
+                "num_inference_steps": 4,
+                "aspect_ratio": "3:4",
+                "output_format": "png",
+                "go_fast": True,
             },
         )
         logger.debug(f"Raw Replicate API response: {output}")
@@ -139,22 +134,17 @@ def start_prediction(prompt: str) -> Optional[str]:
     prompt_text = f"""{prompt}
 
 Black and white coloring page, in the style of TOK, clean outlines, no shading, no colors, white background"""
-    negative_prompt = "shading, colors, grey, gray, photograph, realistic shading, gradients, halftone, dithering, noise, texture"
 
     try:
         prediction = replicate.predictions.create(
-            "pnickolas1/sdxl-coloringbook:d2b110483fdce03119b21786d823f10bb3f5a7c49a7429da784c5017df096d33",
+            "black-forest-labs/flux-schnell",
             input={
                 "prompt": prompt_text,
-                "negative_prompt": negative_prompt,
-                "width": 768,
-                "height": 1024,
                 "num_outputs": 1,
-                "scheduler": "K_EULER",
-                "num_inference_steps": 30,
-                "guidance_scale": 7.5,
-                "lora_scale": 0.6,
-                "apply_watermark": False,
+                "num_inference_steps": 4,
+                "aspect_ratio": "3:4",
+                "output_format": "png",
+                "go_fast": True,
             },
         )
     except Exception as e:
