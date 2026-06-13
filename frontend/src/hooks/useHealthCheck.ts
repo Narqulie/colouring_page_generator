@@ -6,7 +6,7 @@ interface HealthStatus {
   timestamp: string;
 }
 
-export const useHealthCheck = () => {
+export const useHealthCheck = (apiUrl: string = '/api') => {
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,7 +15,7 @@ export const useHealthCheck = () => {
 
     const check = async () => {
       try {
-        const response = await fetch('/api/status');
+        const response = await fetch(`${apiUrl}/status`);
         if (!response.ok) {
           throw new Error(`Health check failed: ${response.status}`);
         }
@@ -38,7 +38,7 @@ export const useHealthCheck = () => {
       cancelled = true;
       clearInterval(interval);
     };
-  }, []);
+  }, [apiUrl]);
 
   return { health, error };
-}; 
+};

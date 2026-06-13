@@ -16,7 +16,6 @@ interface ImageGalleryProps {
   onDelete?: (image: ImageItem) => Promise<void>;
   onReroll?: (prompt: string) => void;
   onTagUpdate?: (filename: string, tags: string[]) => Promise<void>;
-  isLoading?: boolean;
 }
 
 export const ImageGallery = ({
@@ -55,7 +54,7 @@ export const ImageGallery = ({
                   loading="lazy"
                   className="w-[101%] h-[101%] rounded-xl object-contain bg-[#f5f5f5] block relative z-0"
                 />
-                <div className="image-details p-2 pt-7 min-h-[60px] flex flex-col gap-1 absolute bottom-0 left-0 right-0 rounded-b-xl z-1">
+                <div className="p-2 pt-7 min-h-[60px] flex flex-col gap-1 absolute bottom-0 left-0 right-0 rounded-b-xl z-1 bg-gradient-to-b from-white/85 to-white/75">
                   <p className="m-0 text-base leading-tight font-medium overflow-hidden line-clamp-2 bg-transparent">
                     {image.prompt}
                   </p>

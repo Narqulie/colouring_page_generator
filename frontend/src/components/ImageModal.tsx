@@ -130,7 +130,7 @@ export function ImageModal({
       <div className="bg-white rounded-lg p-5 relative w-[90%] max-w-[800px] max-h-[90vh] overflow-y-auto flex flex-col" onClick={(e) => e.stopPropagation()}>
         <button className="absolute top-5 right-7 bg-none border-none text-[42px] cursor-pointer text-[#666] p-1.5 px-2.5 leading-none hover:text-[#333] font-primary" onClick={onClose} aria-label="Close modal">&times;</button>
 
-        <img src={image.url} alt={image.prompt} className="max-w-full max-h-[70vh] object-contain" />
+        <img src={getFullUrl(image.url)} alt={image.prompt} className="max-w-full max-h-[70vh] object-contain" />
 
         <div className="mt-4 shrink-0">
           {image.timestamp && (

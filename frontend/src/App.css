@@ -35,14 +35,6 @@
   pointer-events: none;
 }
 
-.image-details {
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.858) 0%,
-    rgba(255, 255, 255, 0.731) 100%
-  );
-}
-
 @media print {
   @page { margin: 1cm; }
   body { display: flex; align-items: center; justify-content: center; }

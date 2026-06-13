@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { PromptForm } from './components/promptForm'
 import { ImageGallery } from './components/imageGallery'
 import { Footer } from './components/Footer'
@@ -16,7 +16,7 @@ interface Image {
 }
 
 export default function App() {
-  const [isLoading, setIsLoading] = useState(false)
+  const [, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [images, setImages] = useState<Image[]>([])
   const [prompt, setPrompt] = useState('')
@@ -24,13 +24,12 @@ export default function App() {
   const [activeTag, setActiveTag] = useState<string | null>(null)
   const [allTags, setAllTags] = useState<string[]>([])
 
+  const API_URL = import.meta.env.VITE_API_URL || '/api'
   const gradientStyle = useTimeBasedGradient()
-  const { health, error: healthError } = useHealthCheck()
+  const { health, error: healthError } = useHealthCheck(API_URL)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const API_URL = import.meta.env.VITE_API_URL || '/api'
-
-  const fetchImages = async () => {
+  const fetchImages = useCallback(async () => {
     try {
       const params = new URLSearchParams()
       if (searchQuery) params.set('q', searchQuery)
@@ -48,9 +47,9 @@ export default function App() {
       console.error('Error fetching images:', err)
       setImages([])
     }
-  }
+  }, [searchQuery, activeTag, API_URL])
 
-  const fetchTags = async () => {
+  const fetchTags = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/tags`)
       if (response.ok) {
@@ -60,17 +59,17 @@ export default function App() {
     } catch {
       // tags are optional
     }
-  }
+  }, [API_URL])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchImages()
-  }, [searchQuery, activeTag])
+  }, [fetchImages])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchTags()
-  }, [])
+  }, [fetchTags])
 
   useEffect(() => {
     return () => {
@@ -251,7 +250,6 @@ export default function App() {
           }}
           onReroll={handleReroll}
           onTagUpdate={handleTagUpdate}
-          isLoading={isLoading}
         />
       </div>
 
