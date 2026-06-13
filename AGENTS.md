@@ -71,7 +71,7 @@ nginx.conf              # Not used in deployment (redundant)
 - **CORS**: dev locked to `localhost:5173` + `*.onrender.com`, prod is wildcard `["*"]`
 - **No auth** on any endpoint — all public
 - **No tests**, no Python lint/typecheck — only `tsc -b` for frontend
-- **Tailwind is installed but never used** — all styling is **plain CSS** in `App.css` / `index.css`
+- **All styling is plain CSS** in `App.css` / `index.css` (Tailwind was removed)
 - **English-only** — Finnish translations and translations.ts deleted
 - **Async generate flow**: `POST /api/generate` returns `{prediction_id}` immediately. Frontend polls `GET /api/generate/{id}` every 2s until complete. Backend downloads + saves image + writes metadata on success.
 - **Image URLs**: backend returns `url: "/images/{filename}"`, frontend prepends `VITE_API_URL` (`/api`) → full URL `/api/images/{filename}`

@@ -28,20 +28,6 @@ export default function App() {
   const { health, error: healthError } = useHealthCheck()
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  useEffect(() => {
-    fetchImages()
-  }, [searchQuery, activeTag])
-
-  useEffect(() => {
-    fetchTags()
-  }, [])
-
-  useEffect(() => {
-    return () => {
-      if (pollRef.current) clearInterval(pollRef.current)
-    }
-  }, [])
-
   const API_URL = import.meta.env.VITE_API_URL || '/api'
 
   const fetchImages = async () => {
@@ -75,6 +61,22 @@ export default function App() {
       // tags are optional
     }
   }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchImages()
+  }, [searchQuery, activeTag])
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchTags()
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current)
+    }
+  }, [])
 
   const handlePromptSubmit = async (prompt: string) => {
     setIsLoading(true)
