@@ -195,10 +195,17 @@ export default function App() {
   }
 
   return (
-    <div className="app" style={{ background: gradientStyle }}>
-      <div className="hero">
-        <h1 className="page-header">Colouring Page Generator</h1>
-        <p className="hero-subtitle">Turn your ideas into printable colouring pages</p>
+    <div
+      className="box-border w-full max-w-[1800px] mx-auto my-8 p-8 text-center text-black rounded-xl overflow-hidden shadow-md min-h-[calc(100vh-4rem)] flex flex-col bg-[length:150%_150%] animate-gradient-shift"
+      style={{ background: gradientStyle }}
+    >
+      <div className="hero relative px-4 pt-12 pb-8">
+        <h1 className="text-5xl md:text-[3.25rem] font-extrabold text-white mb-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.25)] tracking-tight leading-tight">
+          Colouring Page Generator
+        </h1>
+        <p className="text-lg text-white/75 mb-8 font-normal">
+          Turn your ideas into printable colouring pages
+        </p>
 
         <PromptForm
           onSubmit={handlePromptSubmit}
@@ -207,7 +214,11 @@ export default function App() {
         />
       </div>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && (
+        <div className="max-w-[500px] mx-auto my-8 p-4 rounded-lg text-center text-red-600 bg-red-300/70 animate-[fadeInOut_10s_ease-in-out_forwards]">
+          {error}
+        </div>
+      )}
 
       <SearchBar
         searchQuery={searchQuery}
@@ -217,30 +228,32 @@ export default function App() {
         allTags={allTags}
       />
 
-      <ImageGallery
-        images={(images || []).map(img => ({
-          id: img.filename,
-          url: img.url ? (img.url.startsWith('http') ? img.url : `${API_URL}${img.url}`) : '',
-          prompt: img.prompt || '',
-          filename: img.filename,
-          date: img.date,
-          tags: img.tags || [],
-          timestamp: img.date ? new Date(img.date).toLocaleString('en-GB', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
-          }) : ''
-        }))}
-        onDelete={async (image) => {
-          await handleDelete(image as Image)
-        }}
-        onReroll={handleReroll}
-        onTagUpdate={handleTagUpdate}
-        isLoading={isLoading}
-      />
+      <div className="flex-1 w-full">
+        <ImageGallery
+          images={(images || []).map(img => ({
+            id: img.filename,
+            url: img.url ? (img.url.startsWith('http') ? img.url : `${API_URL}${img.url}`) : '',
+            prompt: img.prompt || '',
+            filename: img.filename,
+            date: img.date,
+            tags: img.tags || [],
+            timestamp: img.date ? new Date(img.date).toLocaleString('en-GB', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            }) : ''
+          }))}
+          onDelete={async (image) => {
+            await handleDelete(image as Image)
+          }}
+          onReroll={handleReroll}
+          onTagUpdate={handleTagUpdate}
+          isLoading={isLoading}
+        />
+      </div>
 
       <Footer
         apiVersion={health?.version}

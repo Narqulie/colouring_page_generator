@@ -126,53 +126,51 @@ export function ImageModal({
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}
-        style={{ maxHeight: '90vh', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}
-      >
-        <button className="modal-close" onClick={onClose} aria-label="Close modal">&times;</button>
+    <div className="fixed inset-0 bg-black/75 z-[1000] flex items-center justify-center" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div className="bg-white rounded-lg p-5 relative w-[90%] max-w-[800px] max-h-[90vh] overflow-y-auto flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <button className="absolute top-5 right-7 bg-none border-none text-[42px] cursor-pointer text-[#666] p-1.5 px-2.5 leading-none hover:text-[#333] font-primary" onClick={onClose} aria-label="Close modal">&times;</button>
 
-        <img src={image.url} alt={image.prompt} className="modal-image"
-          style={{ maxHeight: '70vh', objectFit: 'contain' }}
-        />
+        <img src={image.url} alt={image.prompt} className="max-w-full max-h-[70vh] object-contain" />
 
-        <div className="modal-details" style={{ flexShrink: 0 }}>
-          {image.timestamp && <p className="modal-timestamp">{image.timestamp}</p>}
-          <p className="modal-prompt">{image.prompt}</p>
+        <div className="mt-4 shrink-0">
+          {image.timestamp && (
+            <p className="text-center text-sm text-[#666] mb-2">{image.timestamp}</p>
+          )}
+          <p className="m-0 mb-4 text-2xl text-[#333] text-center px-5">{image.prompt}</p>
 
-          <div className="modal-tags">
+          <div className="m-0 mb-3 flex flex-col gap-1.5 items-center">
             {image.tags.length > 0 && (
-              <p className="modal-tags-display">Tags: {image.tags.join(', ')}</p>
+              <p className="m-0 text-sm text-[#555]">Tags: {image.tags.join(', ')}</p>
             )}
             {isEditingTags ? (
-              <div className="modal-tags-edit">
+              <div className="flex gap-1.5 items-center flex-wrap justify-center">
                 <input
                   type="text"
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                   placeholder="Add tags (comma-separated)"
-                  className="tag-input"
+                  className="px-3 py-2 text-sm border border-white/40 rounded-lg bg-white/85 text-[#333] w-auto min-w-[200px] box-border focus:outline-none focus:border-white focus:bg-white"
                 />
-                <button className="modal-button modal-button-small" onClick={handleSaveTags}>Save</button>
-                <button className="modal-button modal-button-small modal-button-ghost" onClick={() => setIsEditingTags(false)}>Cancel</button>
+                <button className="px-3 py-1 text-sm rounded-md border-none bg-gray-200 text-gray-700 cursor-pointer transition-all duration-300 font-primary hover:bg-gray-300" onClick={handleSaveTags}>Save</button>
+                <button className="px-3 py-1 text-sm rounded-md border border-gray-300 bg-transparent text-gray-500 cursor-pointer transition-all duration-300 font-primary hover:bg-black/5" onClick={() => setIsEditingTags(false)}>Cancel</button>
               </div>
             ) : (
               onTagUpdate && (
-                <button className="modal-button modal-button-small modal-button-ghost" onClick={startEditingTags}>
+                <button className="px-3 py-1 text-sm rounded-md border border-gray-300 bg-transparent text-gray-500 cursor-pointer transition-all duration-300 font-primary hover:bg-black/5" onClick={startEditingTags}>
                   {image.tags.length > 0 ? 'Edit Tags' : 'Add Tags'}
                 </button>
               )
             )}
           </div>
 
-          <div className="modal-actions">
-            <button className="modal-button" onClick={handleSave} type="button">Save Image</button>
-            <button className="modal-button" onClick={handlePrint} type="button">Print</button>
+          <div className="flex gap-2.5 mt-4 justify-center flex-wrap">
+            <button className="px-4 py-2 rounded-md border-none bg-gray-200/80 text-black cursor-pointer transition-all duration-300 font-primary text-base hover:bg-gray-200" onClick={handleSave} type="button">Save Image</button>
+            <button className="px-4 py-2 rounded-md border-none bg-gray-200/80 text-black cursor-pointer transition-all duration-300 font-primary text-base hover:bg-gray-200" onClick={handlePrint} type="button">Print</button>
             {onReroll && (
-              <button className="modal-button" onClick={handleReroll} type="button">Regenerate</button>
+              <button className="px-4 py-2 rounded-md border-none bg-gray-200/80 text-black cursor-pointer transition-all duration-300 font-primary text-base hover:bg-gray-200" onClick={handleReroll} type="button">Regenerate</button>
             )}
             {onDelete && (
-              <button className="modal-button modal-button-delete" onClick={handleDelete} type="button">Delete</button>
+              <button className="px-4 py-2 rounded-md border-none bg-gradient-to-r from-red-400 to-red-500 text-white cursor-pointer transition-all duration-300 font-primary text-base hover:from-red-500 hover:to-red-600" onClick={handleDelete} type="button">Delete</button>
             )}
           </div>
         </div>

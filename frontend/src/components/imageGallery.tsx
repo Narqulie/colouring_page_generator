@@ -38,24 +38,37 @@ export const ImageGallery = ({
 
   return (
     <>
-      <div className="gallery-container">
+      <div className="w-full p-5 box-border bg-[#ffffff57] rounded-xl">
         {images.length === 0 ? (
-          <p className="no-images">No images generated yet. Try creating one!</p>
+          <p className="text-center text-[#666] text-lg my-10">No images generated yet. Try creating one!</p>
         ) : (
-          <div className="image-grid">
+          <div className="grid gap-5 p-5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))' }}>
             {sortedImages.map((image) => (
               <div
                 key={image.filename}
-                className={`image-item ${selectedImage === image ? 'selected' : ''}`}
+                className={`image-item rounded-xl overflow-hidden bg-transparent relative shadow-[0_2px_4px_rgba(0,0,0,0.1)] transition-transform duration-200 cursor-pointer aspect-square flex flex-col ${selectedImage === image ? 'shadow-[0_0_0_3px_rgba(64,64,64,0.18)]' : ''} hover:scale-[1.02]`}
                 onClick={() => handleImageClick(image)}
               >
-                <img src={image.url} alt={image.prompt} loading="lazy" />
-                <div className="image-details">
-                  <p className="image-prompt">{image.prompt}</p>
+                <img
+                  src={image.url}
+                  alt={image.prompt}
+                  loading="lazy"
+                  className="w-[101%] h-[101%] rounded-xl object-contain bg-[#f5f5f5] block relative z-0"
+                />
+                <div className="image-details p-2 pt-7 min-h-[60px] flex flex-col gap-1 absolute bottom-0 left-0 right-0 rounded-b-xl z-1">
+                  <p className="m-0 text-base leading-tight font-medium overflow-hidden line-clamp-2 bg-transparent">
+                    {image.prompt}
+                  </p>
                   {image.tags.length > 0 && (
-                    <p className="image-tags">{image.tags.join(', ')}</p>
+                    <p className="m-0 text-xs text-[#888] overflow-hidden text-ellipsis whitespace-nowrap bg-transparent">
+                      {image.tags.join(', ')}
+                    </p>
                   )}
-                  {image.timestamp && <p className="image-timestamp">{image.timestamp}</p>}
+                  {image.timestamp && (
+                    <p className="m-0 text-xs text-[#666] leading-none bg-transparent">
+                      {image.timestamp}
+                    </p>
+                  )}
                 </div>
               </div>
             ))}
