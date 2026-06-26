@@ -83,5 +83,6 @@ nginx.conf              # Not used in deployment (redundant)
 - **SPA routing**: `/{full_path:path}` handler serves static files from `backend/static/`. No `app.mount("/", StaticFiles...)` — that was removed to fix routing conflicts.
 - **`build:prod`** copies to `backend/static/` (not in `.gitignore`); `frontend/dist/` is gitignored
 - **`.env.example`** at `backend/.env.example`, all other env setup via Render dashboard
+- **`requirements.txt` version pins must be compatible**: `pydantic 2.x` requires specific `pydantic-core` subversion. When bumping pinned deps, check their declared dependencies — Pip's strict resolver will abort the Docker build on mismatches. On Render, this shows as "Exited with status 1 while building your code" with no frontend error.
 - **Time-based gradient**: 4 bands (night/morning/afternoon/evening), stored as CSS vars, animates `background-position`
 - **`frontend/src/api/`** is empty — was used by deleted translations module
