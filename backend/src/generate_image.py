@@ -20,6 +20,9 @@ storage = create_storage()
 predictions: Dict[str, dict] = {}
 _predictions_lock = threading.Lock()
 
+# FLUX.2 [klein] 9B trades some speed for better image quality than FLUX Schnell/klein 4B.
+REPLICATE_MODEL = "black-forest-labs/flux-2-klein-9b"
+
 
 def setup_replicate() -> Optional[bool]:
     logger.info("Setting up Replicate API...")
@@ -31,7 +34,7 @@ def setup_replicate() -> Optional[bool]:
             return None
         os.environ["REPLICATE_API_TOKEN"] = api_token
         try:
-            replicate.models.get("black-forest-labs/flux-schnell")
+            replicate.models.get(REPLICATE_MODEL)
             logger.info("Replicate API token validated")
             return True
         except Exception as e:
@@ -50,12 +53,11 @@ Black and white coloring page, in the style of TOK, clean outlines, no shading, 
     try:
         logger.debug("Calling Replicate API...")
         output = replicate.run(
-            "black-forest-labs/flux-schnell",
+            REPLICATE_MODEL,
             input={
                 "prompt": prompt_text,
-                "num_outputs": 1,
-                "num_inference_steps": 4,
                 "aspect_ratio": "3:4",
+                "output_megapixels": "1",
                 "output_format": "png",
                 "go_fast": True,
             },
@@ -137,15 +139,14 @@ Black and white coloring page, in the style of TOK, clean outlines, no shading, 
 
     try:
         prediction = replicate.predictions.create(
-            "black-forest-labs/flux-schnell",
+            REPLICATE_MODEL,
             input={
                 "prompt": prompt_text,
-                "num_outputs": 1,
-                "num_inference_steps": 4,
                 "aspect_ratio": "3:4",
+                "output_megapixels": "1",
                 "output_format": "png",
                 "go_fast": True,
-            },
+            }
         )
     except Exception as e:
         logger.exception(f"Failed to start Replicate prediction: {e}")
