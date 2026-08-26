@@ -13,38 +13,41 @@ export const Footer = ({ apiVersion, apiStatus }: FooterProps) => {
   const versionParts = [frontendVersion]
   if (apiVersion) versionParts.push(`API v${apiVersion}`)
 
-  const statusColor = apiStatus === 'healthy' ? 'text-green-500' :
-    apiStatus === 'unhealthy' ? 'text-red-500' : 'text-yellow-500'
+  const statusColor = apiStatus === 'healthy' ? 'bg-emerald-400' :
+    apiStatus === 'unhealthy' ? 'bg-red-400' : 'bg-amber-300'
+  const statusText = apiStatus === 'healthy' ? 'API is online' :
+    apiStatus === 'unhealthy' ? 'API is unavailable' : 'API status is being checked'
 
   return (
-    <div className="mt-auto p-8 bg-gradient-to-b from-transparent to-white/10 rounded-b-xl">
-      <div className="flex justify-between items-center max-w-[1200px] mx-auto gap-4 flex-wrap max-md:flex-col max-md:gap-6 max-md:text-center">
-        <div className="flex flex-col items-center gap-2 max-md:w-full">
-          <p className="m-0 text-[#666] text-base">Colouring Page Generator</p>
-          <p className="m-0 text-[#666] text-xs flex items-center justify-center gap-1">
-            {versionParts.join(' | ')}
-            <span className={`inline-block ml-2 text-xs ${statusColor}`} style={{ textShadow: `0 0 2px currentColor` }}>
-              ●
+    <footer className="mt-auto border-t border-white/20 bg-[#201535]/30 px-5 py-7 sm:px-8">
+      <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 text-center sm:flex-row sm:text-left">
+        <div className="min-w-0">
+          <p className="font-display text-base font-semibold text-white">Colouring Page Generator</p>
+          <div className="mt-1 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-white/78 sm:justify-start">
+            <span className="tabular-nums">{versionParts.join(' · ')}</span>
+            <span className="inline-flex items-center gap-1.5" role="status" aria-label={statusText}>
+              <span className={`size-2 rounded-full ${statusColor}`} aria-hidden="true" />
+              <span>{statusText}</span>
             </span>
-          </p>
+          </div>
         </div>
-        <div className="flex flex-col items-center gap-2 max-md:w-full">
-          <p className="m-0 text-[#666] text-base">
-            Made with ❤️ by{' '}
-            <a href="https://github.com/Narqulie" className="text-inherit underline transition-colors duration-300 hover:text-[var(--gradient-evening-end)]">
+        <div className="flex flex-col items-center gap-3 sm:items-end">
+          <p className="text-sm text-white/85">
+            Built by{' '}
+            <a href="https://github.com/Narqulie" className="font-semibold text-white underline decoration-white/50 underline-offset-4 transition-colors hover:text-[#fff0c7] hover:decoration-[#fff0c7]">
               Narqulie
             </a>
           </p>
           <a
             href="https://paypal.me/jheaminoff"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full transition-all duration-300 no-underline text-[#666] hover:bg-white/20 hover:-translate-y-0.5"
+            className="rounded-full border border-white/50 bg-[#201535]/40 px-4 py-2 text-sm font-semibold text-white transition-[background-color,border-color,transform] hover:border-white/80 hover:bg-[#201535]/65 hover:-translate-y-px"
             target="_blank"
             rel="noopener noreferrer"
           >
-            Support the project
+            Support Development
           </a>
         </div>
       </div>
-    </div>
+    </footer>
   )
 }

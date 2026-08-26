@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { ImageModal } from './ImageModal'
 
 export interface ImageItem {
@@ -25,58 +25,73 @@ export const ImageGallery = ({
   onTagUpdate,
 }: ImageGalleryProps) => {
   const [selectedImage, setSelectedImage] = useState<ImageItem | null>(null)
+  const triggerRef = useRef<HTMLButtonElement | null>(null)
 
   const sortedImages = [...images].sort((a, b) => {
-    if (!a.timestamp || !b.timestamp) return 0;
-    return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-  });
+    if (!a.date || !b.date) return 0
+    return new Date(b.date).getTime() - new Date(a.date).getTime()
+  })
 
-  const handleImageClick = (image: ImageItem) => {
+  const handleImageClick = (image: ImageItem, trigger: HTMLButtonElement) => {
+    triggerRef.current = trigger
     setSelectedImage(image)
+  }
+
+  const handleClose = () => {
+    setSelectedImage(null)
+    requestAnimationFrame(() => triggerRef.current?.focus())
   }
 
   return (
     <>
-      <div className="w-full p-5 box-border bg-[#ffffff57] rounded-xl">
+      <div className="w-full rounded-2xl border border-white/45 bg-white/30 p-3 shadow-[0_12px_40px_rgb(47_30_82/12%)] backdrop-blur-sm sm:p-5">
         {images.length === 0 ? (
-          <p className="text-center text-[#666] text-lg my-10">No images generated yet. Try creating one!</p>
-        ) : (
-          <div className="grid gap-5 p-5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))' }}>
-            {sortedImages.map((image) => (
-              <div
-                key={image.filename}
-                className={`image-item rounded-xl overflow-hidden bg-transparent relative shadow-[0_2px_4px_rgba(0,0,0,0.1)] transition-transform duration-200 cursor-pointer aspect-square flex flex-col ${selectedImage === image ? 'shadow-[0_0_0_3px_rgba(64,64,64,0.18)]' : ''} hover:scale-[1.02]`}
-                onClick={() => handleImageClick(image)}
-              >
-                <img
-                  src={image.url}
-                  alt={image.prompt}
-                  loading="lazy"
-                  className="w-[101%] h-[101%] rounded-xl object-contain bg-[#f5f5f5] block relative z-0"
-                />
-                <div className="p-2 pt-7 min-h-[60px] flex flex-col gap-1 absolute bottom-0 left-0 right-0 rounded-b-xl z-1 bg-gradient-to-b from-white/85 to-white/75">
-                  <p className="m-0 text-base leading-tight font-medium overflow-hidden line-clamp-2 bg-transparent">
-                    {image.prompt}
-                  </p>
-                  {image.tags.length > 0 && (
-                    <p className="m-0 text-xs text-[#888] overflow-hidden text-ellipsis whitespace-nowrap bg-transparent">
-                      {image.tags.join(', ')}
-                    </p>
-                  )}
-                  {image.timestamp && (
-                    <p className="m-0 text-xs text-[#666] leading-none bg-transparent">
-                      {image.timestamp}
-                    </p>
-                  )}
-                </div>
-              </div>
-            ))}
+          <div className="mx-auto my-8 max-w-md rounded-2xl bg-white/65 px-6 py-10 text-center shadow-sm">
+            <p className="text-lg font-semibold text-[#34294d]">Your gallery is ready for its first page.</p>
+            <p className="mt-2 text-sm leading-6 text-[#625a70]">Use the prompt above to create a printable colouring page.</p>
           </div>
+        ) : (
+          <ul id="gallery-list" className="grid grid-cols-1 gap-4 min-[360px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5" aria-label="Generated colouring pages">
+            {sortedImages.map((image, index) => (
+              <li
+                key={image.filename}
+                className="min-w-0"
+                style={{ contentVisibility: 'auto', containIntrinsicSize: '360px 480px' }}
+              >
+                <button
+                  type="button"
+                  className="group relative block aspect-[3/4] w-full overflow-hidden rounded-2xl bg-[#f6f3f8] text-left shadow-[0_3px_10px_rgb(36_24_58/18%)] transition-[box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgb(36_24_58/24%)] focus-visible:ring-3 focus-visible:ring-white/90 focus-visible:ring-offset-3 focus-visible:ring-offset-[#6a527d]"
+                  onClick={(event) => handleImageClick(image, event.currentTarget)}
+                  aria-label={`Open ${image.prompt || 'generated colouring page'}`}
+                >
+                  <img
+                    src={image.url}
+                    alt=""
+                    width={768}
+                    height={1024}
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                    fetchPriority={index === 0 ? 'high' : 'auto'}
+                    className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.025] motion-reduce:transition-none"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#17111fe6] via-[#17111fa6] to-transparent px-3 pb-3 pt-12 text-white">
+                    <p className="line-clamp-2 text-sm font-semibold leading-5">{image.prompt || 'Untitled colouring page'}</p>
+                    {image.tags.length > 0 && (
+                      <p className="mt-1 truncate text-xs text-white/78">{image.tags.join(', ')}</p>
+                    )}
+                    {image.timestamp && (
+                      <p className="mt-1 text-xs tabular-nums text-white/70">{image.timestamp}</p>
+                    )}
+                  </div>
+                </button>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
       <ImageModal
+        key={selectedImage?.filename ?? 'no-selected-image'}
         image={selectedImage}
-        onClose={() => setSelectedImage(null)}
+        onClose={handleClose}
         onDelete={onDelete}
         onReroll={onReroll}
         onTagUpdate={onTagUpdate}

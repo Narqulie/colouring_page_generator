@@ -4,7 +4,7 @@ import { ImageGallery } from './components/imageGallery'
 import { Footer } from './components/Footer'
 import { SearchBar } from './components/SearchBar'
 import './App.css'
-import { useTimeBasedGradient } from './components/TimeBasedGradient'
+import { useServerTheme } from './hooks/useServerTheme'
 import { useHealthCheck } from './hooks/useHealthCheck'
 
 interface Image {
@@ -16,18 +16,23 @@ interface Image {
 }
 
 export default function App() {
-  const [, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [generationStatus, setGenerationStatus] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [images, setImages] = useState<Image[]>([])
   const [prompt, setPrompt] = useState('')
-  const [searchQuery, setSearchQuery] = useState('')
-  const [activeTag, setActiveTag] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState(() => new URLSearchParams(window.location.search).get('q') ?? '')
+  const [activeTag, setActiveTag] = useState(() => new URLSearchParams(window.location.search).get('tag'))
   const [allTags, setAllTags] = useState<string[]>([])
 
   const API_URL = import.meta.env.VITE_API_URL || '/api'
-  const gradientStyle = useTimeBasedGradient()
+  const timeTheme = useServerTheme(API_URL)
   const { health, error: healthError } = useHealthCheck(API_URL)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', timeTheme.browserColor)
+  }, [timeTheme.browserColor])
 
   const fetchImages = useCallback(async () => {
     try {
@@ -72,6 +77,26 @@ export default function App() {
   }, [fetchTags])
 
   useEffect(() => {
+    const restoreGalleryFilters = () => {
+      const params = new URLSearchParams(window.location.search)
+      setSearchQuery(params.get('q') ?? '')
+      setActiveTag(params.get('tag'))
+    }
+
+    window.addEventListener('popstate', restoreGalleryFilters)
+    return () => window.removeEventListener('popstate', restoreGalleryFilters)
+  }, [])
+
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    if (searchQuery) url.searchParams.set('q', searchQuery)
+    else url.searchParams.delete('q')
+    if (activeTag) url.searchParams.set('tag', activeTag)
+    else url.searchParams.delete('tag')
+    window.history.replaceState(null, '', url)
+  }, [searchQuery, activeTag])
+
+  useEffect(() => {
     return () => {
       if (pollRef.current) clearInterval(pollRef.current)
     }
@@ -79,6 +104,7 @@ export default function App() {
 
   const handlePromptSubmit = async (prompt: string) => {
     setIsLoading(true)
+    setGenerationStatus('Sending your idea to the illustrator…')
     setError(null)
 
     try {
@@ -99,12 +125,19 @@ export default function App() {
       }
 
       const { prediction_id } = await response.json()
+      setGenerationStatus('Creating the line art…')
 
-      const status = await pollPrediction(prediction_id)
-      if (status === 'failed') {
-        throw new Error('Generation failed on Replicate')
-      }
+      await pollPrediction(prediction_id, (status) => {
+        const messages: Record<string, string> = {
+          starting: 'Preparing the canvas…',
+          processing: 'Drawing your page…',
+          succeeded: 'Saving your colouring page…',
+          completed: 'Saving your colouring page…',
+        }
+        setGenerationStatus(messages[status] ?? 'Creating your page…')
+      })
 
+      setGenerationStatus('Updating your gallery…')
       await fetchImages()
       await fetchTags()
       setPrompt('')
@@ -116,10 +149,14 @@ export default function App() {
       throw err
     } finally {
       setIsLoading(false)
+      setGenerationStatus(null)
     }
   }
 
-  const pollPrediction = async (predictionId: string): Promise<string> => {
+  const pollPrediction = async (
+    predictionId: string,
+    onStatusChange: (status: string) => void,
+  ): Promise<string> => {
     return new Promise((resolve, reject) => {
       const poll = async () => {
         try {
@@ -130,6 +167,8 @@ export default function App() {
             return
           }
           const data = await res.json()
+
+          onStatusChange(data.status)
 
           switch (data.status) {
             case 'completed':
@@ -194,69 +233,77 @@ export default function App() {
   }
 
   return (
-    <div
-      className="box-border w-full max-w-[1800px] mx-auto my-8 p-8 text-center text-black rounded-xl overflow-hidden shadow-md min-h-[calc(100vh-4rem)] flex flex-col bg-[length:150%_150%] animate-gradient-shift"
-      style={{ background: gradientStyle }}
-    >
-      <div className="hero relative px-4 pt-12 pb-8">
-        <h1 className="text-5xl md:text-[3.25rem] font-extrabold text-white mb-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.25)] tracking-tight leading-tight">
-          Colouring Page Generator
-        </h1>
-        <p className="text-lg text-white/75 mb-8 font-normal">
-          Turn your ideas into printable colouring pages
-        </p>
+    <div className="min-h-svh px-0 py-0 sm:px-5 sm:py-5">
+      <a
+        href="#main-content"
+        className="sr-only absolute left-4 top-4 z-[1100] rounded-lg bg-white px-4 py-2 font-semibold text-[#2f1e52] shadow-lg focus:not-sr-only"
+      >
+        Skip to gallery
+      </a>
+      <main
+        id="main-content"
+        className="box-border mx-auto flex min-h-svh w-full max-w-[1600px] flex-col overflow-hidden bg-[length:150%_150%] text-center text-[#25213a] shadow-xl sm:min-h-[calc(100svh-2.5rem)] sm:rounded-3xl motion-safe:animate-gradient-shift"
+        data-time-theme={timeTheme.name}
+        style={{ background: timeTheme.background }}
+      >
+        <header className="hero relative px-5 pb-8 pt-14 sm:px-8 sm:pt-16">
+          <h1 className="font-display mb-3 text-4xl font-extrabold leading-[1.05] tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.25)] text-balance sm:text-5xl lg:text-6xl">
+            Colouring Page Generator
+          </h1>
+          <p className="mx-auto mb-8 max-w-xl text-base font-medium text-white/85 sm:text-lg">
+            Turn your ideas into printable colouring pages
+          </p>
 
-        <PromptForm
-          onSubmit={handlePromptSubmit}
-          prompt={prompt}
-          setPrompt={setPrompt}
+          <PromptForm
+            onSubmit={handlePromptSubmit}
+            prompt={prompt}
+            setPrompt={setPrompt}
+            isSubmitting={isLoading}
+            statusMessage={generationStatus}
+            error={error}
+          />
+        </header>
+
+        <SearchBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          activeTag={activeTag}
+          onTagSelect={setActiveTag}
+          allTags={allTags}
         />
-      </div>
 
-      {error && (
-        <div className="max-w-[500px] mx-auto my-8 p-4 rounded-lg text-center text-red-600 bg-red-300/70 animate-[fadeInOut_10s_ease-in-out_forwards]">
-          {error}
-        </div>
-      )}
+        <section className="w-full flex-1 px-3 pb-3 sm:px-6 sm:pb-6" aria-labelledby="gallery-heading">
+          <h2 id="gallery-heading" className="sr-only">Generated colouring pages</h2>
+          <ImageGallery
+            images={(images || []).map(img => ({
+              id: img.filename,
+              url: img.url ? (img.url.startsWith('http') ? img.url : `${API_URL}${img.url}`) : '',
+              prompt: img.prompt || '',
+              filename: img.filename,
+              date: img.date,
+              tags: img.tags || [],
+              timestamp: img.date ? new Date(img.date).toLocaleString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+              }) : ''
+            }))}
+            onDelete={async (image) => {
+              await handleDelete(image as Image)
+            }}
+            onReroll={handleReroll}
+            onTagUpdate={handleTagUpdate}
+          />
+        </section>
 
-      <SearchBar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        activeTag={activeTag}
-        onTagSelect={setActiveTag}
-        allTags={allTags}
-      />
-
-      <div className="flex-1 w-full">
-        <ImageGallery
-          images={(images || []).map(img => ({
-            id: img.filename,
-            url: img.url ? (img.url.startsWith('http') ? img.url : `${API_URL}${img.url}`) : '',
-            prompt: img.prompt || '',
-            filename: img.filename,
-            date: img.date,
-            tags: img.tags || [],
-            timestamp: img.date ? new Date(img.date).toLocaleString('en-GB', {
-              day: '2-digit',
-              month: '2-digit',
-              year: 'numeric',
-              hour: 'numeric',
-              minute: '2-digit',
-              hour12: true
-            }) : ''
-          }))}
-          onDelete={async (image) => {
-            await handleDelete(image as Image)
-          }}
-          onReroll={handleReroll}
-          onTagUpdate={handleTagUpdate}
+        <Footer
+          apiVersion={health?.version}
+          apiStatus={healthError ? 'unhealthy' : health ? 'healthy' : 'unknown'}
         />
-      </div>
-
-      <Footer
-        apiVersion={health?.version}
-        apiStatus={healthError ? 'unhealthy' : health ? 'healthy' : 'unknown'}
-      />
+      </main>
     </div>
   )
 }

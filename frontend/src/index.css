@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  --font-family-primary: futura, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  --font-sans: Futura, "Avenir Next", Avenir, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --font-display: Futura, "Avenir Next", Avenir, system-ui, sans-serif;
 
   --animate-gradient-shift: gradientShift 40s ease-in-out infinite alternate;
 }
@@ -16,12 +17,55 @@
 }
 
 :root {
-  --gradient-morning-start: #ffd4a3;
-  --gradient-morning-end: #ffb6c1;
-  --gradient-afternoon-start: #c490fb;
-  --gradient-afternoon-end: #d99153;
+  color-scheme: light;
+  font-family: var(--font-sans);
+  background: #f7f3ff;
+  color: #25213a;
+  -webkit-tap-highlight-color: rgb(65 43 108 / 18%);
+
+  --gradient-morning-start: #9c426a;
+  --gradient-morning-end: #714b9f;
+  --gradient-afternoon-start: #6351ad;
+  --gradient-afternoon-end: #a24d65;
   --gradient-evening-start: #471e6e;
-  --gradient-evening-end: #b85151;
-  --gradient-night-start: #483d8b;
-  --gradient-night-end: #4b0082;
+  --gradient-evening-end: #4f465b;
+  --gradient-night-start: #3d3676;
+  --gradient-night-end: #5b2c74;
+}
+
+html {
+  min-width: 320px;
+  background: #f7f3ff;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100svh;
+  margin: 0;
+  background:
+    radial-gradient(circle at top, rgb(255 255 255 / 75%), transparent 36rem),
+    #f7f3ff;
+}
+
+button,
+input,
+a {
+  touch-action: manipulation;
+}
+
+:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px #2f1e52;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

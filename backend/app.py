@@ -3,13 +3,14 @@ import sys
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, Form, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import FileResponse, JSONResponse, Response
 from loguru import logger
 from src.generate_image import create_colouring_page, start_prediction, get_prediction
 from src.gallery import get_image_filenames
 from src.helpers import save_metadata, load_metadata
 from src.storage import create_storage
 from src.version import __version__
+from src.theme import get_active_theme
 from datetime import datetime
 from urllib.parse import unquote
 
@@ -76,6 +77,15 @@ async def health_check():
         "timestamp": datetime.now().isoformat(),
         "storage": storage_health,
     }
+
+
+@app.get("/api/theme")
+async def get_theme():
+    """Return the shared, server-authoritative visual theme for every client."""
+    return JSONResponse(
+        content=get_active_theme(),
+        headers={"Cache-Control": "no-store"},
+    )
 
 
 @app.get("/api/version")

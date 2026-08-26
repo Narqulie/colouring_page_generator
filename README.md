@@ -56,6 +56,11 @@ The application will be available at:
 ### Backend
 - `PORT`: Port to run the backend server (default: 8000)
 - `LOG_LEVEL`: Logging level (default: DEBUG)
+- `THEME_TIMEZONE`: IANA timezone used by the shared time-based palette (default: `Europe/Helsinki`). The server is the sole theme authority for every client.
 
 ### Frontend
-- `VITE_API_URL`: Backend API URL (default: http://localhost:8000) 
+- `VITE_API_URL`: Backend API URL (default: http://localhost:8000)
+
+### Shared theme API
+
+`GET /api/theme` returns the active server-controlled period, its background colours, configured timezone, server time, and the next scheduled change. Clients should render this payload directly and refresh at `next_change_at`; no user settings or browser-local clock determines the theme.
