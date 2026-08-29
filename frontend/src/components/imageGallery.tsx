@@ -44,11 +44,11 @@ export const ImageGallery = ({
 
   return (
     <>
-      <div className="w-full rounded-2xl border border-white/45 bg-white/30 p-3 shadow-[0_12px_40px_rgb(47_30_82/12%)] backdrop-blur-sm sm:p-5">
+      <div className="w-full rounded-2xl border border-white/22 bg-[#21182f]/28 p-3 shadow-[0_12px_40px_rgb(20_12_35/22%)] backdrop-blur-sm sm:p-5">
         {images.length === 0 ? (
-          <div className="mx-auto my-8 max-w-md rounded-2xl bg-white/65 px-6 py-10 text-center shadow-sm">
-            <p className="text-lg font-semibold text-[#34294d]">Your gallery is ready for its first page.</p>
-            <p className="mt-2 text-sm leading-6 text-[#625a70]">Use the prompt above to create a printable colouring page.</p>
+          <div className="mx-auto my-8 max-w-md rounded-2xl border border-[#fff8ea]/55 bg-[#fff6e8]/94 px-6 py-10 text-center shadow-[0_10px_25px_rgb(20_12_35/18%)]">
+            <p className="text-lg font-semibold text-[#38284a]">Your gallery is ready for its first page.</p>
+            <p className="mt-2 text-sm leading-6 text-[#65566f]">Use the prompt above to create a printable colouring page.</p>
           </div>
         ) : (
           <ul id="gallery-list" className="grid grid-cols-1 gap-4 min-[360px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5" aria-label="Generated colouring pages">

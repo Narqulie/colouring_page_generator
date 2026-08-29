@@ -7,7 +7,9 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        // Use IPv4 explicitly: on this host `localhost` can resolve to an unrelated
+        // service bound on ::1:8000, while the development API listens on 127.0.0.1.
+        target: 'http://127.0.0.1:8000',
         changeOrigin: true,
       }
     }

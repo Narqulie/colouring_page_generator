@@ -15,7 +15,7 @@ export const useHealthCheck = (apiUrl: string = '/api') => {
 
     const check = async () => {
       try {
-        const response = await fetch(`${apiUrl}/status`);
+        const response = await fetch(`${apiUrl}/status`, { cache: 'no-store' });
         if (!response.ok) {
           throw new Error(`Health check failed: ${response.status}`);
         }

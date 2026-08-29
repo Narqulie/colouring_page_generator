@@ -19,8 +19,8 @@ export const Footer = ({ apiVersion, apiStatus }: FooterProps) => {
     apiStatus === 'unhealthy' ? 'API is unavailable' : 'API status is being checked'
 
   return (
-    <footer className="mt-auto border-t border-white/20 bg-[#201535]/30 px-5 py-7 sm:px-8">
-      <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 text-center sm:flex-row sm:text-left">
+    <footer className="mt-auto border-t border-white/15 bg-[#181026]/24 px-5 py-5 sm:px-8">
+      <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left">
         <div className="min-w-0">
           <p className="font-display text-base font-semibold text-white">Colouring Page Generator</p>
           <div className="mt-1 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-white/78 sm:justify-start">
@@ -31,7 +31,7 @@ export const Footer = ({ apiVersion, apiStatus }: FooterProps) => {
             </span>
           </div>
         </div>
-        <div className="flex flex-col items-center gap-3 sm:items-end">
+        <div className="flex flex-col items-center gap-2.5 sm:items-end">
           <p className="text-sm text-white/85">
             Built by{' '}
             <a href="https://github.com/Narqulie" className="font-semibold text-white underline decoration-white/50 underline-offset-4 transition-colors hover:text-[#fff0c7] hover:decoration-[#fff0c7]">

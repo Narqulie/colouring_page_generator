@@ -17,9 +17,9 @@
 }
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
   font-family: var(--font-sans);
-  background: #f7f3ff;
+  background: #251832;
   color: #25213a;
   -webkit-tap-highlight-color: rgb(65 43 108 / 18%);
 
@@ -35,7 +35,7 @@
 
 html {
   min-width: 320px;
-  background: #f7f3ff;
+  background: #251832;
 }
 
 body {
@@ -43,8 +43,8 @@ body {
   min-height: 100svh;
   margin: 0;
   background:
-    radial-gradient(circle at top, rgb(255 255 255 / 75%), transparent 36rem),
-    #f7f3ff;
+    radial-gradient(circle at top, rgb(196 164 226 / 20%), transparent 36rem),
+    #251832;
 }
 
 button,

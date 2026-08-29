@@ -25,7 +25,7 @@ export const SearchBar = ({
         placeholder="Search your pages…"
         autoComplete="off"
         aria-controls="gallery-list"
-        className="w-full rounded-xl border border-white/55 bg-white/90 px-4 py-3 text-sm text-[#2b2438] shadow-sm transition-[background-color,border-color,box-shadow] duration-200 placeholder:text-[#716d7e] hover:bg-white focus-visible:border-[#3d276d] focus-visible:bg-white focus-visible:shadow-[0_3px_14px_rgba(34,21,57,0.16)]"
+        className="w-full rounded-xl border border-[#fff7e9]/60 bg-[#fffaf2]/94 px-4 py-3 text-sm text-[#2b2438] shadow-[0_3px_12px_rgb(16_9_29/16%)] transition-[background-color,border-color,box-shadow] duration-200 placeholder:text-[#716d7e] hover:bg-[#fffdf8] focus-visible:border-[#3d276d] focus-visible:bg-[#fffdf8] focus-visible:shadow-[0_3px_14px_rgba(16,9,29,0.24)]"
       />
     </form>
 
@@ -34,7 +34,7 @@ export const SearchBar = ({
         <legend className="sr-only">Filter by tag</legend>
         <button
           type="button"
-          className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition-[background-color,border-color,color] duration-200 ${activeTag === null ? 'border-white bg-white text-[#33224f] shadow-sm' : 'border-white/45 bg-[#2f1e52]/55 text-white hover:bg-[#2f1e52]/70'}`}
+          className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition-[background-color,border-color,color] duration-200 ${activeTag === null ? 'border-[#fff7e9]/75 bg-[#fffaf2] text-[#33224f] shadow-sm' : 'border-white/30 bg-[#211832]/45 text-white hover:bg-[#211832]/65'}`}
           onClick={() => onTagSelect(null)}
           aria-pressed={activeTag === null}
           aria-controls="gallery-list"
@@ -47,7 +47,7 @@ export const SearchBar = ({
             <button
               key={tag}
               type="button"
-              className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition-[background-color,border-color,color] duration-200 ${isActive ? 'border-white bg-white text-[#33224f] shadow-sm' : 'border-white/45 bg-[#2f1e52]/55 text-white hover:bg-[#2f1e52]/70'}`}
+              className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition-[background-color,border-color,color] duration-200 ${isActive ? 'border-[#fff7e9]/75 bg-[#fffaf2] text-[#33224f] shadow-sm' : 'border-white/30 bg-[#211832]/45 text-white hover:bg-[#211832]/65'}`}
               onClick={() => onTagSelect(tag)}
               aria-pressed={isActive}
               aria-controls="gallery-list"

@@ -40,7 +40,7 @@ export default function App() {
       if (searchQuery) params.set('q', searchQuery)
       if (activeTag) params.set('tag', activeTag)
       const qs = params.toString()
-      const response = await fetch(`${API_URL}/images${qs ? `?${qs}` : ''}`)
+      const response = await fetch(`${API_URL}/images${qs ? `?${qs}` : ''}`, { cache: 'no-store' })
       if (!response.ok) {
         throw new Error(`Failed to fetch images: ${response.status} ${response.statusText}`)
       }
@@ -56,7 +56,7 @@ export default function App() {
 
   const fetchTags = useCallback(async () => {
     try {
-      const response = await fetch(`${API_URL}/tags`)
+      const response = await fetch(`${API_URL}/tags`, { cache: 'no-store' })
       if (response.ok) {
         const data = await response.json()
         setAllTags(data.tags || [])
@@ -160,7 +160,7 @@ export default function App() {
     return new Promise((resolve, reject) => {
       const poll = async () => {
         try {
-          const res = await fetch(`${API_URL}/generate/${predictionId}`)
+          const res = await fetch(`${API_URL}/generate/${predictionId}`, { cache: 'no-store' })
           if (!res.ok) {
             clearInterval(pollRef.current!)
             reject(new Error('Failed to poll generation status'))
